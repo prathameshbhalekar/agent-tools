@@ -1,5 +1,7 @@
 # agent-helper
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/prathameshbhalekar/agent-tools/tree/main/worker)
+
 | Folder | What |
 |---|---|
 | [`worker/`](worker) | Cloudflare Worker that customers deploy in front of their API. It enforces x402 paywalls and ships analytics logs. |

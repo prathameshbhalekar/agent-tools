@@ -9,7 +9,7 @@ You choose which endpoints are paywalled or logged in the Agent Helper app. The 
 
 ## Deploy
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/<org>/agent-helper/tree/main/worker)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/prathameshbhalekar/agent-tools/tree/main/worker)
 
 During deploy you'll be asked for:
 
