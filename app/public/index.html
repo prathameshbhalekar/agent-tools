@@ -196,11 +196,11 @@ ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
       <ol class="steps">
         <li>Click <b>Deploy to Cloudflare</b> on the worker's README.</li>
         <li>When prompted, set <code>API_KEY</code> to the key above.</li>
-        <li>Set <code>APP_API_URL</code> to <code id="app-url"></code>. Leave <code>ORIGIN_URL</code> blank.</li>
+        <li>Set <code>APP_API_URL</code> to <code id="app-url"></code>.</li>
         <li>In Cloudflare, attach the worker to your API: <b>Workers &amp; Pages → agent-helper → Settings → Domains &amp; Routes → Add route</b>, e.g. <code>api.acme.com/*</code>. Your API's domain must be on Cloudflare.</li>
         <li>Add routes on the <b>Routes</b> tab. Clients keep calling your API as before. The worker charges for or logs the matching requests and passes the rest through.</li>
       </ol>
-      <p class="muted" style="margin:12px 0 0">Is your domain not on Cloudflare? Set <code>ORIGIN_URL</code> to your API instead, and have clients call the worker's URL.</p>
+      <p class="muted" style="margin:12px 0 0">Is your domain not on Cloudflare? After deploying, add an <code>ORIGIN_URL</code> variable pointing at your API (Settings → Variables and Secrets), and have clients call the worker's URL instead.</p>
     </div>
   </main>
 </section>

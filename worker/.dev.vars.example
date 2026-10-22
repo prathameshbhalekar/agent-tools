@@ -1,2 +1,4 @@
 API_KEY=
-ORIGIN_SECRET=
+# Optional: commented out so the Deploy button doesn't require it.
+# Set it later as a secret if your origin should verify requests came through the worker.
+# ORIGIN_SECRET=

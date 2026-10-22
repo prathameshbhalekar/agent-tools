@@ -16,14 +16,19 @@ During deploy you'll be asked for:
 | Name | Kind | What |
 |---|---|---|
 | `API_KEY` | secret | API key from your Agent Helper dashboard |
-| `ORIGIN_SECRET` | secret, optional | Sent to your origin as `X-Agent-Helper-Secret` |
-| `ORIGIN_URL` | var, optional | Leave blank for route mode (recommended). Otherwise, set it to your API's base URL. |
 | `APP_API_URL` | var | Agent Helper API (keep the default) |
+
+Two optional settings aren't asked for, because Cloudflare's deploy form won't accept empty fields. Set them later under Workers & Pages → agent-helper → Settings → Variables and Secrets:
+
+| Name | Kind | What |
+|---|---|---|
+| `ORIGIN_URL` | text | Proxy mode only (see below). Your API's base URL. |
+| `ORIGIN_SECRET` | secret | Sent to your origin as `X-Agent-Helper-Secret` |
 
 After deploying, attach the worker to your API:
 
-- **Route mode (recommended, your API's domain is on Cloudflare):** go to Workers & Pages → agent-helper → Settings → Domains & Routes → Add route, and enter e.g. `api.acme.com/*`. Clients keep calling the same URL. The worker runs first and passes allowed requests on to your existing server. Leave `ORIGIN_URL` blank.
-- **Proxy mode (your API's domain isn't on Cloudflare):** set `ORIGIN_URL` to your API, then have clients call the worker's URL. The worker rewrites requests to `ORIGIN_URL`.
+- **Route mode (recommended, your API's domain is on Cloudflare):** go to Workers & Pages → agent-helper → Settings → Domains & Routes → Add route, and enter e.g. `api.acme.com/*`. Clients keep calling the same URL. The worker runs first and passes allowed requests on to your existing server. Don't set `ORIGIN_URL`.
+- **Proxy mode (your API's domain isn't on Cloudflare):** add an `ORIGIN_URL` variable pointing at your API, then have clients call the worker's URL. The worker rewrites requests to `ORIGIN_URL`.
 
 If neither is set up, requests to the bare `*.workers.dev` URL get a `500` explaining what's missing, so the worker doesn't loop into itself.
 
