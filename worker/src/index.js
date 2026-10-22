@@ -41,9 +41,17 @@ function paymentRequired(accepts, error) {
   return Response.json({ x402Version: 1, error, accepts }, { status: 402 });
 }
 
+// Route mode (default): the worker is attached to a route on the API's own Cloudflare domain,
+// so fetching the original URL continues to the existing server. ORIGIN_URL is only for
+// APIs whose domain isn't on Cloudflare: then the worker runs on its own URL and rewrites to it.
 function toOrigin(request, env, extraHeaders = {}) {
   const url = new URL(request.url);
-  const target = env.ORIGIN_URL.replace(/\/$/, '') + url.pathname + url.search;
+  if (!env.ORIGIN_URL && url.hostname.endsWith('.workers.dev')) {
+    // fetching our own workers.dev URL would just loop back into this worker
+    return Promise.resolve(Response.json(
+      { error: 'agent-helper: attach this worker to a route on your API domain, or set ORIGIN_URL' }, { status: 500 }));
+  }
+  const target = env.ORIGIN_URL ? env.ORIGIN_URL.replace(/\/$/, '') + url.pathname + url.search : request.url;
   const req = new Request(target, request);
   for (const [k, v] of Object.entries(extraHeaders)) req.headers.set(k, v);
   if (env.ORIGIN_SECRET) req.headers.set('x-agent-helper-secret', env.ORIGIN_SECRET);
@@ -84,7 +92,8 @@ export default {
     let paid = false;
 
     if (route.paywall) {
-      const accepts = route.paywall.accepts ?? [];
+      // x402 needs the full resource URL; the dashboard can't know the worker's hostname, so fill it here
+      const accepts = (route.paywall.accepts ?? []).map((a) => ({ resource: request.url, ...a }));
       const payment = request.headers.get('x-payment');
       if (!payment) {
         response = paymentRequired(accepts, 'X-PAYMENT header is required');

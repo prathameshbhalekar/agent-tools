@@ -12,10 +12,18 @@
   },
   "cloudflare": {
     "bindings": {
-      "API_KEY": { "description": "API key from your Agent Helper dashboard." },
-      "ORIGIN_SECRET": { "description": "Optional. Sent to your origin as X-Agent-Helper-Secret so it can trust injected payment headers." },
-      "ORIGIN_URL": { "description": "Base URL of your existing API, e.g. https://api.example.com" },
-      "APP_API_URL": { "description": "Agent Helper API base URL. Leave the default." }
+      "API_KEY": {
+        "description": "API key from your Agent Helper dashboard."
+      },
+      "ORIGIN_SECRET": {
+        "description": "Optional. Sent to your origin as X-Agent-Helper-Secret so it can trust injected payment headers."
+      },
+      "ORIGIN_URL": {
+        "description": "Leave blank if you'll attach this worker to a route on your API's Cloudflare domain (recommended). Otherwise, the base URL of your existing API, e.g. https://api.example.com"
+      },
+      "APP_API_URL": {
+        "description": "Agent Helper API base URL. Leave the default."
+      }
     }
   }
 }

@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Helper</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f6f4; --surface: #fcfcfb; --surface-2: #f0efec; --border: #e2e1dc;
+  --text: #0b0b0b; --text-2: #52514e; --muted: #7a7974; --grid: #e7e6e1;
+  --accent: #2a78d6; --accent-ink: #fff; --series-1: #2a78d6;
+  --good: #0ca30c; --critical: #d03b3b; --warning: #b57a00;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #111110; --surface: #1a1a19; --surface-2: #242422; --border: #2f2f2c;
+    --text: #f0efec; --text-2: #c3c2b7; --muted: #8f8e86; --grid: #2c2c29;
+    --accent: #3987e5; --series-1: #3987e5; --warning: #fab219;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: 6px 12px; }
+button:hover { background: var(--surface-2); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button.primary:hover { filter: brightness(1.08); }
+button.danger { color: var(--critical); }
+button.link { border: 0; background: none; padding: 0; color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+input, select { border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: 6px 10px; min-width: 0; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+label { display: grid; gap: 4px; font-size: 12px; color: var(--text-2); }
+code, .mono { font-family: var(--mono); font-size: 12.5px; }
+.hidden { display: none !important; }
+.error { color: var(--critical); min-height: 1.45em; }
+.muted { color: var(--muted); }
+
+/* auth */
+#auth { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.auth-card { width: min(380px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; display: grid; gap: 14px; }
+.auth-card h1 { margin: 0; font-size: 20px; }
+.auth-card input { padding: 9px 12px; }
+
+/* shell */
+header { display: flex; align-items: center; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 2; flex-wrap: wrap; }
+header .brand { font-weight: 650; }
+nav { display: flex; gap: 4px; flex-wrap: wrap; }
+nav button { border: 0; background: none; color: var(--text-2); }
+nav button[aria-current="page"] { background: var(--surface-2); color: var(--text); font-weight: 550; }
+header .me { margin-left: auto; display: flex; gap: 12px; align-items: center; color: var(--text-2); }
+main { max-width: 1120px; margin: 0 auto; padding: 24px; display: grid; gap: 20px; }
+.toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.toolbar h2 { margin: 0; font-size: 18px; margin-right: auto; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+.card h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
+
+/* stats */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.tile .label { color: var(--text-2); font-size: 12px; }
+.tile .value { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.tile .sub { color: var(--muted); font-size: 12px; }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: 200px; overflow: visible; }
+.chart .axis { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .bar { fill: var(--series-1); }
+.chart .hit { fill: transparent; }
+.chart .bar.active { filter: brightness(1.15); }
+.tooltip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 12px; box-shadow: 0 4px 16px rgb(0 0 0 / .12); white-space: nowrap; transform: translate(-50%, calc(-100% - 8px)); z-index: 1; }
+.tooltip b { font-variant-numeric: tabular-nums; }
+details.table-view { margin-top: 8px; }
+details.table-view summary { cursor: pointer; color: var(--text-2); font-size: 12px; }
+
+/* tables */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th { color: var(--text-2); font-weight: 500; font-size: 12px; }
+td.num, th.num { text-align: right; }
+td.wrap { white-space: normal; word-break: break-all; }
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td { background: var(--surface-2); }
+.badge { display: inline-flex; align-items: center; gap: 6px; }
+.badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.badge.good::before { background: var(--good); }
+.badge.warn::before { background: var(--warning); }
+.badge.bad::before { background: var(--critical); }
+.detail { background: var(--surface-2); }
+.detail pre { margin: 0; font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-break: break-all; max-height: 360px; overflow: auto; }
+.detail .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 4px 0; }
+.empty { color: var(--muted); padding: 24px; text-align: center; }
+
+/* routes */
+.route { display: grid; gap: 12px; border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--surface); }
+.route-row { display: grid; grid-template-columns: 110px minmax(160px, 1fr) auto auto auto; gap: 10px; align-items: end; }
+.route .checks { display: flex; gap: 16px; align-items: center; padding-bottom: 6px; }
+.route .checks label { display: flex; gap: 6px; flex-direction: row; align-items: center; color: var(--text); font-size: 14px; }
+.route .order { display: flex; gap: 4px; }
+.route .order button { padding: 6px 9px; }
+.paywall { display: grid; grid-template-columns: 120px 150px minmax(200px, 1.4fr) minmax(160px, 1fr); gap: 10px; padding: 12px; border-radius: 10px; background: var(--surface-2); }
+@media (max-width: 760px) {
+  header, main { padding-left: 16px; padding-right: 16px; }
+  .route-row, .paywall { grid-template-columns: 1fr 1fr; }
+  .route-row label:nth-child(2), .paywall label:nth-child(3), .paywall label:nth-child(4) { grid-column: 1 / -1; }
+}
+
+/* key */
+.keybox { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.keybox code { padding: 8px 12px; background: var(--surface-2); border-radius: 8px; word-break: break-all; }
+ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+</style>
+</head>
+<body>
+
+<section id="auth" class="hidden">
+  <form class="auth-card" id="auth-form">
+    <h1 id="auth-title">Sign in to Agent Helper</h1>
+    <label>Email <input name="email" type="email" autocomplete="email" required></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" minlength="8" required></label>
+    <div class="error" id="auth-error" role="alert"></div>
+    <button class="primary" type="submit" id="auth-submit">Sign in</button>
+    <div class="muted" id="auth-switch-text">No account? <button type="button" class="link" id="auth-switch">Create one</button></div>
+  </form>
+</section>
+
+<section id="app" class="hidden">
+  <header>
+    <span class="brand">Agent Helper</span>
+    <nav id="nav">
+      <button data-tab="overview">Overview</button>
+      <button data-tab="routes">Routes</button>
+      <button data-tab="payments">Payments</button>
+      <button data-tab="logs">Logs</button>
+      <button data-tab="setup">API key &amp; setup</button>
+    </nav>
+    <div class="me"><span id="me-email"></span><button id="logout">Sign out</button></div>
+  </header>
+
+  <main id="tab-overview" class="tab">
+    <div class="toolbar">
+      <h2>Overview</h2>
+      <label style="flex-direction:row;align-items:center;gap:8px;display:flex">Range
+        <select id="range"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select>
+      </label>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div class="charts">
+      <div class="card"><h3>Logged requests per day</h3><div class="chart" id="chart-requests"></div></div>
+      <div class="card"><h3>Revenue per day (USDC)</h3><div class="chart" id="chart-revenue"></div></div>
+    </div>
+    <div class="card"><h3>Top routes</h3><div class="table-wrap" id="top-routes"></div></div>
+  </main>
+
+  <main id="tab-routes" class="tab">
+    <div class="toolbar">
+      <h2>Routes</h2>
+      <span class="muted" id="routes-status"></span>
+      <button id="add-route">Add route</button>
+      <button class="primary" id="save-routes">Save</button>
+    </div>
+    <p class="muted" style="margin:0">Routes are checked top to bottom and the first match wins. Paths use URLPattern syntax, e.g. <code>/api/premium/*</code> or <code>/users/:id</code>. The worker picks up changes within a minute.</p>
+    <div class="error" id="routes-error" role="alert"></div>
+    <div id="routes" style="display:grid;gap:12px"></div>
+  </main>
+
+  <main id="tab-payments" class="tab">
+    <div class="toolbar"><h2>Payments</h2><button id="refresh-payments">Refresh</button></div>
+    <div class="card table-wrap" id="payments"></div>
+  </main>
+
+  <main id="tab-logs" class="tab">
+    <div class="toolbar"><h2>Logs</h2><button id="refresh-logs">Refresh</button></div>
+    <div class="card table-wrap" id="logs"></div>
+  </main>
+
+  <main id="tab-setup" class="tab">
+    <div class="toolbar"><h2>API key &amp; setup</h2></div>
+    <div class="card">
+      <h3>Your API key</h3>
+      <div class="keybox">
+        <code id="api-key"></code>
+        <button id="reveal-key">Show</button>
+        <button id="copy-key">Copy</button>
+        <button class="danger" id="rotate-key">Rotate</button>
+      </div>
+      <p class="muted" id="key-note">Rotating gives you a new key, and the old one stops working straight away. Update the worker's <code>API_KEY</code> secret afterwards.</p>
+    </div>
+    <div class="card">
+      <h3>Deploy the worker</h3>
+      <ol class="steps">
+        <li>Click <b>Deploy to Cloudflare</b> on the worker's README.</li>
+        <li>When prompted, set <code>API_KEY</code> to the key above.</li>
+        <li>Set <code>APP_API_URL</code> to <code id="app-url"></code>. Leave <code>ORIGIN_URL</code> blank.</li>
+        <li>In Cloudflare, attach the worker to your API: <b>Workers &amp; Pages → agent-helper → Settings → Domains &amp; Routes → Add route</b>, e.g. <code>api.acme.com/*</code>. Your API's domain must be on Cloudflare.</li>
+        <li>Add routes on the <b>Routes</b> tab. Clients keep calling your API as before. The worker charges for or logs the matching requests and passes the rest through.</li>
+      </ol>
+      <p class="muted" style="margin:12px 0 0">Is your domain not on Cloudflare? Set <code>ORIGIN_URL</code> to your API instead, and have clients call the worker's URL.</p>
+    </div>
+  </main>
+</section>
+
+<script>
+'use strict';
+const $ = (s) => document.querySelector(s);
+
+// Build DOM without innerHTML so logged bodies/headers can never inject markup.
+function h(tag, attrs = {}, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k === 'class') el.className = v;
+    else if (k in el && typeof v !== 'string') el[k] = v;
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of children.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  return el;
+}
+
+async function api(method, path, body) {
+  const res = await fetch(path, {
+    method,
+    headers: body ? { 'content-type': 'application/json' } : {},
+    body: body && JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== '/v1/login' && path !== '/v1/me') { showAuth(); throw new Error(data.error || 'not logged in'); }
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+// ---------- money: exact string math, USDC = 6 decimals ----------
+const USDC = {
+  'base-sepolia': { asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e', extra: { name: 'USDC', version: '2' }, tx: 'https://sepolia.basescan.org/tx/' },
+  base: { asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', extra: { name: 'USD Coin', version: '2' }, tx: 'https://basescan.org/tx/' },
+};
+function toAtomic(usd) {
+  const m = String(usd).trim().match(/^(\d+)(?:\.(\d{0,6}))?$/);
+  if (!m) return null;
+  return String(BigInt(m[1]) * 1_000_000n + BigInt((m[2] || '').padEnd(6, '0')));
+}
+function fromAtomic(atomic) {
+  const s = String(atomic ?? 0).padStart(7, '0');
+  const whole = s.slice(0, -6), frac = s.slice(-6).replace(/0+$/, '');
+  return frac ? `${whole}.${frac}` : whole;
+}
+const fmtUsd = (atomic) => {
+  const n = Number(atomic) / 1e6;
+  return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: n && n < 0.01 ? 6 : 2 });
+};
+const fmtInt = (n) => Number(n || 0).toLocaleString();
+const fmtTime = (iso) => new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const shortHex = (s) => (s && s.length > 14 ? `${s.slice(0, 6)}…${s.slice(-4)}` : s || '—');
+
+// ---------- auth ----------
+let signupMode = false;
+function showAuth() {
+  $('#app').classList.add('hidden');
+  $('#auth').classList.remove('hidden');
+}
+function setAuthMode(signup) {
+  signupMode = signup;
+  $('#auth-title').textContent = signup ? 'Create your account' : 'Sign in to Agent Helper';
+  $('#auth-submit').textContent = signup ? 'Create account' : 'Sign in';
+  $('#auth-switch-text').firstChild.textContent = signup ? 'Already have an account? ' : 'No account? ';
+  $('#auth-switch').textContent = signup ? 'Sign in' : 'Create one';
+  $('#auth-form').password.autocomplete = signup ? 'new-password' : 'current-password';
+  $('#auth-error').textContent = '';
+}
+$('#auth-switch').onclick = () => setAuthMode(!signupMode);
+$('#auth-form').onsubmit = async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  $('#auth-error').textContent = '';
+  $('#auth-submit').disabled = true;
+  try {
+    await api('POST', signupMode ? '/v1/signup' : '/v1/login', { email: f.email.value, password: f.password.value });
+    f.reset();
+    await boot();
+  } catch (err) {
+    $('#auth-error').textContent = err.message;
+  } finally {
+    $('#auth-submit').disabled = false;
+  }
+};
+$('#logout').onclick = async () => { await api('POST', '/v1/logout'); me = null; showAuth(); };
+
+// ---------- tabs ----------
+const loaders = { overview: loadOverview, routes: loadRoutes, payments: () => loadPayments(true), logs: () => loadLogs(true), setup: loadSetup };
+function showTab(tab) {
+  if (!loaders[tab]) tab = 'overview';
+  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('hidden', t.id !== `tab-${tab}`));
+  document.querySelectorAll('#nav button').forEach((b) => b.dataset.tab === tab ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+  if (location.hash !== `#${tab}`) history.replaceState(null, '', `#${tab}`);
+  loaders[tab]().catch((err) => console.error(err));
+}
+$('#nav').onclick = (e) => { if (e.target.dataset.tab) showTab(e.target.dataset.tab); };
+
+// ---------- overview ----------
+$('#range').onchange = () => loadOverview();
+let lastStats;
+async function loadOverview() {
+  const s = await api('GET', `/v1/stats?days=${$('#range').value}`);
+  lastStats = s;
+  const t = s.totals;
+  const tile = (label, value, sub) => h('div', { class: 'tile' }, h('div', { class: 'label' }, label), h('div', { class: 'value' }, value), sub && h('div', { class: 'sub' }, sub));
+  $('#tiles').replaceChildren(
+    tile('Revenue', fmtUsd(t.amount), 'USDC settled'),
+    tile('Payments', fmtInt(t.payments), 'settled x402 payments'),
+    tile('Logged requests', fmtInt(t.requests), 'on routes with logging on'),
+    tile('Server errors', t.requests ? `${((t.errors / t.requests) * 100).toFixed(1)}%` : '—', `${fmtInt(t.errors)} responses ≥ 500`),
+    tile('Avg latency', t.avgMs == null ? '—' : `${fmtInt(t.avgMs)} ms`, 'origin round trip'),
+  );
+  drawCharts();
+  $('#top-routes').replaceChildren(s.topRoutes.length
+    ? h('table', {},
+        h('thead', {}, h('tr', {}, h('th', {}, 'Route'), h('th', { class: 'num' }, 'Requests'), h('th', { class: 'num' }, 'Paid'), h('th', { class: 'num' }, 'Errors'), h('th', { class: 'num' }, 'Avg ms'))),
+        h('tbody', {}, s.topRoutes.map((r) => h('tr', {}, h('td', { class: 'mono' }, r.route ?? '—'), h('td', { class: 'num' }, fmtInt(r.requests)), h('td', { class: 'num' }, fmtInt(r.paid)), h('td', { class: 'num' }, fmtInt(r.errors)), h('td', { class: 'num' }, fmtInt(r.avgMs))))))
+    : h('div', { class: 'empty' }, 'No logged requests in this range yet.'));
+}
+function drawCharts() {
+  if (!lastStats) return;
+  barChart($('#chart-requests'), lastStats.daily, (d) => d.requests, fmtInt, (d) => [`${fmtInt(d.requests)} requests`, `${fmtInt(d.errors)} errors`]);
+  barChart($('#chart-revenue'), lastStats.daily, (d) => d.amount / 1e6, (v) => fmtUsd(v * 1e6), (d) => [`${fmtUsd(d.amount)}`, `${fmtInt(d.payments)} payments`]);
+}
+let resizeTimer;
+addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(drawCharts, 150); });
+
+const SVG = 'http://www.w3.org/2000/svg';
+const s = (tag, attrs = {}) => { const el = document.createElementNS(SVG, tag); for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v); return el; };
+const dayLabel = (day) => new Date(`${day}T00:00:00Z`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+function niceMax(v) {
+  if (v <= 0) return 1;
+  const p = 10 ** Math.floor(Math.log10(v));
+  return [1, 2, 5, 10].map((m) => m * p).find((m) => m >= v); // 5 gridlines -> round ticks
+}
+
+// Single-series bar chart: thin bars, 4px rounded tops on the baseline, 2px gaps, hover tooltip, table view.
+function barChart(root, data, value, fmt, tip) {
+  const W = Math.max(root.clientWidth, 280), H = 200, pad = { t: 8, r: 4, b: 22, l: 48 };
+  const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+  const max = niceMax(Math.max(...data.map(value)));
+  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': root.previousElementSibling?.textContent || 'chart' });
+  for (let i = 0; i <= 5; i++) {
+    const y = pad.t + ih - (ih * i) / 5;
+    svg.append(s('line', { class: 'gridline', x1: pad.l, x2: W - pad.r, y1: y, y2: y }));
+    const t = s('text', { class: 'axis', x: pad.l - 8, y: y + 4, 'text-anchor': 'end' });
+    t.textContent = fmt((max * i) / 5);
+    svg.append(t);
+  }
+  const step = iw / data.length, bw = Math.max(Math.min(step - 2, 28), 1);
+  const labelEvery = Math.ceil(data.length / Math.max(Math.floor(iw / 64), 1));
+  const tooltip = h('div', { class: 'tooltip hidden' });
+  data.forEach((d, i) => {
+    const v = value(d), bh = (v / max) * ih, x = pad.l + i * step + (step - bw) / 2, y0 = pad.t + ih;
+    const r = Math.min(4, bw / 2, bh);
+    const hit = s('rect', { class: 'hit', x: pad.l + i * step, y: pad.t, width: step, height: ih });
+    const bar = s('path', { class: 'bar', d: bh > 0
+      ? `M${x},${y0} V${y0 - bh + r} Q${x},${y0 - bh} ${x + r},${y0 - bh} H${x + bw - r} Q${x + bw},${y0 - bh} ${x + bw},${y0 - bh + r} V${y0} Z`
+      : '' });
+    hit.addEventListener('mouseenter', () => {
+      const [a, b] = tip(d);
+      tooltip.replaceChildren(h('div', { class: 'muted' }, dayLabel(d.day)), h('b', {}, a), h('div', { class: 'muted' }, b));
+      tooltip.style.left = `${((x + bw / 2) / W) * 100}%`;
+      tooltip.style.top = `${y0 - bh}px`; // svg is drawn 1:1 (height 200px = viewBox H)
+      tooltip.classList.remove('hidden');
+      bar.classList.add('active');
+    });
+    hit.addEventListener('mouseleave', () => { tooltip.classList.add('hidden'); bar.classList.remove('active'); });
+    svg.append(bar, hit); // hit target on top so hovering the bar itself works
+    if (i % labelEvery === 0) {
+      const t = s('text', { class: 'axis', x: x + bw / 2, y: H - 6, 'text-anchor': 'middle' });
+      t.textContent = dayLabel(d.day);
+      svg.append(t);
+    }
+  });
+  const table = h('details', { class: 'table-view' }, h('summary', {}, 'View as table'),
+    h('table', {}, h('tbody', {}, data.map((d) => h('tr', {}, h('td', {}, dayLabel(d.day)), h('td', { class: 'num' }, fmt(value(d))))))));
+  root.replaceChildren(svg, tooltip, table);
+}
+
+// ---------- routes ----------
+let routes = [];
+function routeToForm(r) {
+  const a = r.paywall?.accepts?.[0];
+  return {
+    method: r.method || '*', path: r.path || '/', log: !!r.log, paid: !!a,
+    price: a ? fromAtomic(a.maxAmountRequired) : '0.01',
+    network: a?.network || 'base-sepolia', payTo: a?.payTo || '', description: a?.description || '',
+  };
+}
+function formToRoute(f) {
+  const route = { method: f.method, path: f.path.trim() };
+  if (f.log) route.log = true;
+  if (f.paid) {
+    const amount = toAtomic(f.price);
+    if (!amount || amount === '0') throw new Error(`${f.path}: price must be a positive number of USD (max 6 decimals)`);
+    if (!/^0x[0-9a-fA-F]{40}$/.test(f.payTo.trim())) throw new Error(`${f.path}: "Pay to" must be a 0x wallet address`);
+    const usdc = USDC[f.network];
+    // resource is filled in by the worker from the request URL
+    route.paywall = { accepts: [{
+      scheme: 'exact', network: f.network, maxAmountRequired: amount, payTo: f.payTo.trim(),
+      asset: usdc.asset, extra: usdc.extra, description: f.description.trim() || `Access to ${route.path}`,
+      mimeType: 'application/json', maxTimeoutSeconds: 60,
+    }] };
+  }
+  if (!route.path.startsWith('/')) throw new Error(`Path must start with "/": ${route.path || '(empty)'}`);
+  return route;
+}
+async function loadRoutes() {
+  routes = (await api('GET', '/v1/routes')).routes.map(routeToForm);
+  $('#routes-error').textContent = '';
+  $('#routes-status').textContent = '';
+  renderRoutes();
+}
+function markDirty() { $('#routes-status').textContent = 'Unsaved changes'; }
+function renderRoutes() {
+  const list = $('#routes');
+  if (!routes.length) return list.replaceChildren(h('div', { class: 'card empty' }, 'No routes yet. Every request passes straight through to your origin. Add a route to charge for it or log it.'));
+  list.replaceChildren(...routes.map((f, i) => {
+    const set = (k) => (e) => { f[k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; markDirty(); if (k === 'paid') renderRoutes(); };
+    const methods = ['*', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+    const move = (d) => () => { [routes[i], routes[i + d]] = [routes[i + d], routes[i]]; markDirty(); renderRoutes(); };
+    return h('div', { class: 'route' },
+      h('div', { class: 'route-row' },
+        h('label', {}, 'Method', h('select', { onchange: set('method') }, methods.map((m) => h('option', { value: m, selected: f.method === m }, m === '*' ? 'Any' : m)))),
+        h('label', {}, 'Path', h('input', { value: f.path, oninput: set('path'), class: 'mono', placeholder: '/api/premium/*', 'aria-label': 'Path' })),
+        h('div', { class: 'checks' },
+          h('label', {}, h('input', { type: 'checkbox', checked: f.log, onchange: set('log') }), 'Log'),
+          h('label', {}, h('input', { type: 'checkbox', checked: f.paid, onchange: set('paid') }), 'Paywall')),
+        h('div', { class: 'order' },
+          h('button', { type: 'button', title: 'Move up', 'aria-label': 'Move up', disabled: i === 0, onclick: move(-1) }, '↑'),
+          h('button', { type: 'button', title: 'Move down', 'aria-label': 'Move down', disabled: i === routes.length - 1, onclick: move(1) }, '↓')),
+        h('button', { type: 'button', class: 'danger', onclick: () => { routes.splice(i, 1); markDirty(); renderRoutes(); } }, 'Remove')),
+      f.paid && h('div', { class: 'paywall' },
+        h('label', {}, 'Price (USDC)', h('input', { value: f.price, oninput: set('price'), inputmode: 'decimal', placeholder: '0.01' })),
+        h('label', {}, 'Network', h('select', { onchange: set('network') }, Object.keys(USDC).map((n) => h('option', { value: n, selected: f.network === n }, n === 'base' ? 'Base (mainnet)' : 'Base Sepolia (test)')))),
+        h('label', {}, 'Pay to (wallet address)', h('input', { value: f.payTo, oninput: set('payTo'), class: 'mono', placeholder: '0x…' })),
+        h('label', {}, 'Description', h('input', { value: f.description, oninput: set('description'), placeholder: 'Shown to paying agents' }))));
+  }));
+}
+$('#add-route').onclick = () => { routes.push(routeToForm({ method: 'GET', path: '/', log: true })); markDirty(); renderRoutes(); };
+$('#save-routes').onclick = async () => {
+  $('#routes-error').textContent = '';
+  try {
+    const saved = await api('PUT', '/v1/routes', { routes: routes.map(formToRoute) });
+    routes = saved.routes.map(routeToForm);
+    renderRoutes();
+    $('#routes-status').textContent = 'Saved';
+  } catch (err) {
+    $('#routes-error').textContent = err.message;
+  }
+};
+
+// ---------- payments & logs (paged) ----------
+const paged = { payments: { next: null, rows: [] }, logs: { next: null, rows: [] } };
+async function loadPage(kind, reset) {
+  const p = paged[kind];
+  if (reset) { p.rows = []; p.next = null; }
+  const data = await api('GET', `/v1/${kind}?limit=50${p.next ? `&before=${p.next}` : ''}`);
+  p.rows.push(...data[kind]);
+  p.next = data.next;
+  return p;
+}
+const moreButton = (kind, load) => paged[kind].next && h('div', { style: 'padding:12px;text-align:center' }, h('button', { onclick: () => load(false) }, 'Load more'));
+
+async function loadPayments(reset) {
+  const { rows } = await loadPage('payments', reset);
+  $('#payments').replaceChildren(rows.length
+    ? h('table', {},
+        h('thead', {}, h('tr', {}, h('th', {}, 'Time'), h('th', {}, 'Request'), h('th', { class: 'num' }, 'Amount'), h('th', {}, 'Payer'), h('th', {}, 'Network'), h('th', {}, 'Transaction'))),
+        h('tbody', {}, rows.map((p) => h('tr', {},
+          h('td', {}, fmtTime(p.ts)),
+          h('td', { class: 'mono wrap' }, `${p.method ?? ''} ${p.url ? new URL(p.url).pathname : ''}`),
+          h('td', { class: 'num' }, fmtUsd(p.amount)),
+          h('td', { class: 'mono', title: p.payer ?? '' }, shortHex(p.payer)),
+          h('td', {}, p.network),
+          h('td', { class: 'mono' }, p.tx && USDC[p.network]
+            ? h('a', { href: USDC[p.network].tx + encodeURIComponent(p.tx), target: '_blank', rel: 'noopener noreferrer' }, shortHex(p.tx))
+            : shortHex(p.tx))))))
+    : h('div', { class: 'empty' }, 'No payments yet. They appear here once a paid route settles a payment.'),
+    moreButton('payments', loadPayments) || '');
+}
+$('#refresh-payments').onclick = () => loadPayments(true);
+
+const statusClass = (s) => (s >= 500 ? 'bad' : s === 402 || s >= 400 ? 'warn' : 'good');
+const pretty = (body) => { if (body == null) return '(empty)'; try { return JSON.stringify(JSON.parse(body), null, 2); } catch { return body; } };
+async function loadLogs(reset) {
+  const { rows } = await loadPage('logs', reset);
+  const open = new Set();
+  const tbody = h('tbody');
+  const render = () => tbody.replaceChildren(...rows.flatMap((l) => [
+    h('tr', { class: 'clickable', 'aria-expanded': String(open.has(l.id)), tabindex: 0,
+      onclick: () => { open.has(l.id) ? open.delete(l.id) : open.add(l.id); render(); },
+      onkeydown: (e) => { if (e.key === 'Enter') e.currentTarget.click(); } },
+      h('td', {}, fmtTime(l.ts)),
+      h('td', { class: 'mono' }, l.method),
+      h('td', { class: 'mono wrap' }, l.url ? new URL(l.url).pathname + new URL(l.url).search : '—'),
+      h('td', {}, h('span', { class: `badge ${statusClass(l.status)}` }, l.status)),
+      h('td', { class: 'num' }, l.durationMs == null ? '—' : `${fmtInt(l.durationMs)} ms`),
+      h('td', {}, l.paid ? 'Paid' : '—')),
+    open.has(l.id) && h('tr', { class: 'detail' }, h('td', { colspan: 6 }, h('div', { class: 'cols' },
+      h('div', {}, h('h3', {}, 'Request'), h('pre', {}, JSON.stringify(l.request?.headers ?? {}, null, 2)), h('pre', {}, pretty(l.request?.body))),
+      h('div', {}, h('h3', {}, `Response · ${l.status}`), h('pre', {}, JSON.stringify(l.response?.headers ?? {}, null, 2)), h('pre', {}, pretty(l.response?.body)))))),
+  ].filter(Boolean)));
+  render();
+  $('#logs').replaceChildren(rows.length
+    ? h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Time'), h('th', {}, 'Method'), h('th', {}, 'Path'), h('th', {}, 'Status'), h('th', { class: 'num' }, 'Duration'), h('th', {}, 'Payment'))), tbody)
+    : h('div', { class: 'empty' }, 'No logs yet. Turn on "Log" for a route to start collecting.'),
+    moreButton('logs', loadLogs) || '');
+}
+$('#refresh-logs').onclick = () => loadLogs(true);
+
+// ---------- setup / API key ----------
+let me = null, keyShown = false, rotateArmed = false;
+function renderKey() {
+  $('#api-key').textContent = keyShown ? me.apiKey : `${me.apiKey.slice(0, 6)}${'•'.repeat(24)}${me.apiKey.slice(-4)}`;
+  $('#reveal-key').textContent = keyShown ? 'Hide' : 'Show';
+}
+async function loadSetup() {
+  $('#app-url').textContent = location.origin;
+  renderKey();
+}
+$('#reveal-key').onclick = () => { keyShown = !keyShown; renderKey(); };
+$('#copy-key').onclick = async (e) => {
+  await navigator.clipboard.writeText(me.apiKey);
+  e.target.textContent = 'Copied';
+  setTimeout(() => (e.target.textContent = 'Copy'), 1500);
+};
+$('#rotate-key').onclick = async (e) => {
+  if (!rotateArmed) {
+    rotateArmed = true;
+    e.target.textContent = 'Click again to rotate';
+    setTimeout(() => { rotateArmed = false; e.target.textContent = 'Rotate'; }, 4000);
+    return;
+  }
+  rotateArmed = false;
+  me.apiKey = (await api('POST', '/v1/key/rotate')).apiKey;
+  keyShown = true;
+  e.target.textContent = 'Rotate';
+  renderKey();
+};
+
+// ---------- boot ----------
+async function boot() {
+  try {
+    me = await api('GET', '/v1/me');
+  } catch {
+    return showAuth();
+  }
+  $('#me-email').textContent = me.email;
+  $('#auth').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  showTab(location.hash.slice(1));
+}
+addEventListener('hashchange', () => me && showTab(location.hash.slice(1)));
+boot();
+</script>
+</body>
+</html>

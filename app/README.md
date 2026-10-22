@@ -1,10 +1,10 @@
 # agent-helper app
 
-Backend for the worker: accounts and API keys, route config, x402 payment verification, and analytics logs.
-It uses Node ≥ 22.13 with no dependencies (built-in `http` and `node:sqlite`).
+This is the dashboard and backend for the worker: sign-up and login, API keys, route config, x402 payment verification, payment history, and analytics logs.
+It uses Node ≥ 22.13 with no dependencies (built-in `http` and `node:sqlite`). The dashboard is a single page, `public/index.html`, served at `/`.
 
 ```sh
-ADMIN_TOKEN=change-me npm start   # :8787
+npm start   # http://localhost:8787
 npm test
 ```
 
@@ -12,30 +12,32 @@ npm test
 |---|---|---|
 | `PORT` | `8787` | |
 | `DB_PATH` | `agent-helper.db` | SQLite file |
-| `ADMIN_TOKEN` | — | Required to create accounts |
 | `FACILITATOR_URL` | `https://x402.org/facilitator` | x402 facilitator used for `/verify` and `/settle` (testnet). Point it at a mainnet facilitator, e.g. Coinbase CDP, for real money. |
+
+## Dashboard
+
+- **Overview:** revenue, payments, logged requests, error rate and latency, with daily charts and top routes.
+- **Routes:** add, reorder and remove routes; turn logging on or off; set a USDC price, network and pay-to wallet for paywalled routes.
+- **Payments:** settled payments with links to the Basescan transaction.
+- **Logs:** logged requests; click a row to see the redacted headers and the bodies.
+- **API key & setup:** show, copy or rotate the key, plus the worker deploy steps.
 
 ## API
 
-Every call except `/health` and account creation needs `Authorization: Bearer <API_KEY>`.
+The dashboard authenticates with an `sid` session cookie (HttpOnly, SameSite=Lax). The worker uses `Authorization: Bearer <API_KEY>`. Every endpoint below accepts either.
 
-| Endpoint | Caller | What |
-|---|---|---|
-| `POST /v1/accounts` `{name}` | admin (`Bearer ADMIN_TOKEN`) | Creates an account and returns `{apiKey}`. The customer enters this key in the Deploy button. |
-| `PUT /v1/routes` `{routes:[...]}` | dashboard | Replaces the route list. Each route is `{method?, path, paywall?: {accepts:[...]}, log?}` and the first match wins. |
-| `GET /v1/routes` | dashboard | Returns the current routes. |
-| `GET /v1/logs?limit=50&before=<id>` | dashboard | Returns logs newest first, with paging via `next`. |
-| `GET /v1/worker/config` | worker | Returns `{routes}`. |
-| `POST /v1/worker/verify` `{payment, accepts}` | worker | Decodes `X-PAYMENT`, picks the matching `accepts` entry, then calls facilitator `/verify` and `/settle`. Returns `{valid, error?, payer?, paymentResponse?}`. |
-| `POST /v1/worker/logs` | worker | Stores one request/response log. |
+| Endpoint | What |
+|---|---|
+| `POST /v1/signup` `{email, password}` | Creates an account and API key and starts a session. Passwords must be at least 8 characters and are hashed with scrypt. |
+| `POST /v1/login` / `POST /v1/logout` | Starts or ends a session. |
+| `GET /v1/me` | Returns `{email, apiKey}`. |
+| `POST /v1/key/rotate` | Issues a new key; the old one stops working immediately. |
+| `GET` / `PUT /v1/routes` | Gets or replaces the route list `[{method?, path, paywall?: {accepts:[...]}, log?}]`. The first match wins. |
+| `GET /v1/stats?days=7\|30\|90` | Returns totals, a daily series and the top routes. |
+| `GET /v1/payments?limit&before` | Lists settled payments, newest first, with paging via `next`. |
+| `GET /v1/logs?limit&before` | Lists logs, newest first, with paging via `next`. |
+| `GET /v1/worker/config` | Worker: returns `{routes}`. |
+| `POST /v1/worker/verify` `{payment, accepts, method, url}` | Worker: decodes `X-PAYMENT`, picks the matching `accepts` entry, and calls facilitator `/verify` then `/settle`. If both succeed it records the payment. Returns `{valid, error?, payer?, paymentResponse?}`. |
+| `POST /v1/worker/logs` | Worker: stores one request/response log. |
 
-Example setup:
-```sh
-curl -XPOST localhost:8787/v1/accounts -H 'authorization: Bearer change-me' -d '{"name":"acme"}'
-curl -XPUT localhost:8787/v1/routes -H 'authorization: Bearer ah_...' -d '{"routes":[
-  {"method":"GET","path":"/api/premium/*","log":true,"paywall":{"accepts":[{"scheme":"exact","network":"base-sepolia",
-   "maxAmountRequired":"10000","resource":"https://api.acme.com/api/premium","description":"Premium data",
-   "mimeType":"application/json","payTo":"0xYourWallet","maxTimeoutSeconds":60,
-   "asset":"0x036CbD53842c5426634e7929541eC2318f3dCF7e","extra":{"name":"USDC","version":"2"}}]}},
-  {"path":"/api/search","log":true}]}'
-```
+The worker fills in each payment requirement's `resource` from the request URL, so routes saved from the dashboard leave it out.

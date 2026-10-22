@@ -64,7 +64,9 @@ test('paid route without payment returns 402 with accepts', async () => {
   assert.equal(res.status, 402);
   const body = await res.json();
   assert.equal(body.x402Version, 1);
-  assert.deepEqual(body.accepts, accepts);
+  assert.equal(body.accepts.length, 1);
+  assert.equal(new URL(body.accepts[0].resource).pathname, '/paid/item'); // filled in by the worker
+  assert.deepEqual({ ...body.accepts[0], resource: undefined }, { ...accepts[0], resource: undefined });
 });
 
 test('paid route with invalid payment returns 402', async () => {
@@ -102,4 +104,25 @@ test('logged route ships redacted request/response to analytics', async () => {
   assert.equal(log.request.body, 'hello');
   assert.equal(log.request.headers.authorization, '[redacted]');
   assert.match(log.response.body, /"origin":true/);
+});
+
+test('route mode (no ORIGIN_URL): request continues to its own URL with injected proof', async () => {
+  const originHost = `http://127.0.0.1:${mock.address().port}`;
+  const routeWorker = await unstable_dev('src/index.js', {
+    vars: { ORIGIN_URL: '', APP_API_URL: originHost, API_KEY: 'test-key' },
+    experimental: { disableExperimentalWarning: true },
+  });
+  try {
+    // the worker sees the API's own hostname, as it would on a Cloudflare route
+    const res = await routeWorker.fetch(`${originHost}/paid/item?x=1`, { headers: { 'X-PAYMENT': 'good' } });
+    assert.equal(res.status, 200);
+    assert.equal((await res.json()).path, '/paid/item?x=1');
+    assert.equal(lastOriginHeaders['x-payment-verified'], 'true');
+
+    const loop = await routeWorker.fetch('https://agent-helper.acme.workers.dev/free');
+    assert.equal(loop.status, 500);
+    assert.match((await loop.json()).error, /attach this worker to a route/);
+  } finally {
+    await routeWorker.stop();
+  }
 });
