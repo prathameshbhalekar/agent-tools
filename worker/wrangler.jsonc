@@ -1,0 +1,9 @@
+{
+  "name": "agent-helper",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-01",
+  "vars": {
+    "ORIGIN_URL": "https://api.example.com",
+    "APP_API_URL": "https://api.agent-helper.example"
+  }
+}
