@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design System</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<style>
+  /* showcase-only chrome */
+  .ds-label { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; padding: 0 0 16px; }
+  .ds-label code, .ds code { font: 12px/1.5 var(--font-mono); letter-spacing: 0; color: var(--color-muted); }
+  .ds-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .ds-grid { display: grid; gap: 24px; }
+  .ds-2 { grid-template-columns: repeat(2, 1fr); }
+  .ds-3 { grid-template-columns: repeat(3, 1fr); }
+  .ds-grid > * { min-width: 0; }
+  .swatch { display: grid; gap: 6px; width: 140px; }
+  .swatch i { height: 64px; border-radius: var(--radius-btn); box-shadow: var(--shadow-hairline); }
+  .type-row { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--color-border); }
+  .ds-toc { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .ds-toc a { font: var(--type-small); padding: 4px 10px; border-radius: var(--radius-pill); background: var(--color-surface); box-shadow: var(--shadow-hairline); }
+  @media (max-width: 809px) { .ds-2, .ds-3 { grid-template-columns: 1fr; } .type-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v6m0 6v6M3 12h6m6 0h6M6 6l3 3m6 6 3 3M18 6l-3 3m-6 6-3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 12.5h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-square" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-tri" viewBox="0 0 24 24"><path d="M12 4 20 19H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-hex" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5 6.6 19.5l1.2-6-4.5-4.2 6.1-.7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="frame">
+
+  <!-- Nav -->
+  <header class="nav">
+    <a class="nav__brand" href="#"><span class="wordmark__glyph"></span>Brand</a>
+    <nav class="nav__links" aria-label="Main"><a href="#foundations">Foundations</a><a href="#primitives">Primitives</a><a href="#cards">Cards</a><a href="#patterns">Patterns</a><a href="#footer">Footer</a></nav>
+    <div class="nav__end"><a class="btn btn--accent" href="#">Primary action</a><button class="nav__toggle" aria-label="Menu"><svg width="16" height="16"><use href="#i-plus"/></svg></button></div>
+  </header>
+  <div class="band"></div>
+
+  <!-- Intro -->
+  <section class="section">
+    <div class="section-head">
+      <span class="badge">Design system</span>
+      <h1 class="t-display">Tokens and components</h1>
+      <p class="t-body">Every component from the reference template, rebuilt with measured values. Tokens live in tokens.css, components in components.css, and behaviour in site.js.</p>
+      <div class="ds-toc"><a href="#color">Color</a><a href="#type">Type</a><a href="#shape">Space &amp; shape</a><a href="#buttons">Buttons</a><a href="#badges">Badges</a><a href="#cards">Cards</a><a href="#steps">Steps</a><a href="#flow">Flow</a><a href="#vtabs">Vertical tabs</a><a href="#compare">Comparison</a><a href="#case">Case study</a><a href="#tiles">Tiles</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a><a href="#blog">Blog</a><a href="#footer">Footer</a></div>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Foundations -->
+  <section class="section ds" id="foundations">
+    <div id="color">
+      <div class="ds-label"><h2 class="t-title">Color</h2><code>--color-*</code></div>
+      <div class="ds-row" id="swatches"></div>
+    </div>
+    <div id="type">
+      <div class="ds-label"><h2 class="t-title">Type</h2><code>font: var(--type-*); letter-spacing: var(--track-*)</code></div>
+      <div class="type-row"><code>.t-display 48/500 −3px</code><span class="t-display">Display heading</span></div>
+      <div class="type-row"><code>.t-title 32/400 −2.2px</code><span class="t-title">Section title</span></div>
+      <div class="type-row"><code>.t-h3 24/500 −1.6px</code><span class="t-h3">Card heading</span></div>
+      <div class="type-row"><code>.t-metric 34/500 −2px</code><span class="t-metric">−62%</span></div>
+      <div class="type-row"><code>.t-h4 18/500 −1.1px</code><span class="t-h4">Question or list heading</span></div>
+      <div class="type-row"><code>.t-label 14/600 −0.9px</code><span class="t-label">Buttons, badges, nav</span></div>
+      <div class="type-row"><code>.t-body 14/400 −0.8px</code><p class="t-body">Body copy for descriptions and supporting text.</p></div>
+      <div class="type-row"><code>.t-small 12/500 −0.4px</code><p class="t-small">Meta, timestamps, captions</p></div>
+      <div class="type-row"><code>.t-micro 11/600</code><p class="t-micro">Micro label</p></div>
+    </div>
+    <div id="shape">
+      <div class="ds-label"><h2 class="t-title">Space &amp; shape</h2><code>--space-* · --radius-*</code></div>
+      <div style="display:grid;gap:8px;max-width:560px;margin-bottom:24px" id="spaces"></div>
+      <div class="ds-row">
+        <div class="card" style="border-radius:var(--radius-sm)"><code>--radius-sm 8</code></div>
+        <div class="card" style="border-radius:var(--radius-btn)"><code>--radius-btn 12</code></div>
+        <div class="card" style="border-radius:var(--radius-toggle)"><code>--radius-toggle 14</code></div>
+        <div class="card" style="border-radius:var(--radius-panel)"><code>--radius-panel 16</code></div>
+        <div class="card"><code>--radius-card 20</code></div>
+        <div class="card" style="box-shadow:var(--shadow-lift)"><code>--shadow-lift</code></div>
+      </div>
+      <div style="margin-top:24px" class="ds-grid ds-2">
+        <div><code>.frame</code> 1320px column with 1px side lines · <code>.band</code> 40px hatched divider</div>
+        <div class="band"></div>
+      </div>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Primitives -->
+  <section class="section ds" id="primitives">
+    <div id="buttons">
+      <div class="ds-label"><h2 class="t-title">Buttons</h2><code>.btn --accent | --dark | --white · --icon --block --lg</code></div>
+      <div class="ds-row">
+        <button class="btn btn--accent">Accent</button>
+        <button class="btn btn--dark">Dark</button>
+        <button class="btn btn--white">White</button>
+        <button class="btn btn--dark btn--icon"><span class="btn__icon"><svg width="16" height="16"><use href="#i-spark"/></svg></span>With icon</button>
+        <button class="btn btn--accent btn--lg" style="width:240px">Large / block</button>
+      </div>
+      <div class="ds-row on-dark" style="margin-top:16px;padding:24px;border-radius:var(--radius-card)">
+        <button class="btn btn--accent">Accent</button>
+        <button class="btn btn--white">White</button>
+        <button class="btn btn--accent btn--icon"><span class="btn__icon" style="background:var(--color-ink);color:#fff"><svg width="16" height="16"><use href="#i-spark"/></svg></span>With icon</button>
+      </div>
+    </div>
+    <div id="badges">
+      <div class="ds-label"><h2 class="t-title">Badges, toggle, tiles, avatars</h2><code>.badge --sm --white --live · .toggle · .icon-tile · .avatar</code></div>
+      <div class="ds-row">
+        <span class="badge">Badge</span><span class="badge badge--sm">Small</span><span class="badge badge--white">White</span><span class="badge badge--sm badge--live">Live</span>
+        <div class="toggle" data-toggle><button class="toggle__opt" aria-pressed="true">Option A</button><button class="toggle__opt" aria-pressed="false">Option B <span class="badge badge--sm">Tag</span></button></div>
+        <span class="icon-tile"><svg><use href="#i-bolt"/></svg></span><span class="icon-tile icon-tile--lg"><svg><use href="#i-bolt"/></svg></span><span class="icon-tile icon-tile--plain"><svg><use href="#i-bolt"/></svg></span>
+        <span class="check"><svg><use href="#i-check"/></svg></span><span class="check check--pending"><svg><use href="#i-check"/></svg></span>
+        <span class="avatar"></span><span class="avatar-stack"><span class="avatar avatar--sm"></span><span class="avatar avatar--sm"></span><span class="avatar avatar--sm"></span></span>
+      </div>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Cards -->
+  <section class="section" id="cards">
+    <div class="section-head"><span class="badge">Cards</span><h2 class="t-title">Feature and use-case cards</h2><p class="t-body">Flat white, radius 20, 24px padding. The media slot holds original halftone-dot art.</p></div>
+    <div class="ds-grid ds-3">
+      <article class="card"><div class="card__media"><div class="halftone"></div></div><div class="card__text"><h3 class="t-h4">Feature title</h3><p class="t-body">Two lines of supporting description sit under the title.</p></div></article>
+      <article class="card"><div class="card__media"><div class="halftone halftone--ring halftone--accent"></div></div><div class="card__text"><h3 class="t-h4">Feature title</h3><p class="t-body">Two lines of supporting description sit under the title.</p></div></article>
+      <article class="card"><div class="card__media dot-grid"><div class="row" style="width:70%"><span class="check"><svg><use href="#i-check"/></svg></span><span class="row__text t-small" style="color:var(--color-ink)">Task complete</span><span class="row__meta">0.4s</span></div></div><div class="card__text"><h3 class="t-h4">Feature title</h3><p class="t-body">Two lines of supporting description sit under the title.</p></div></article>
+    </div>
+    <div class="ds-grid ds-3">
+      <article class="card"><div class="wordmark"><span class="wordmark__glyph"></span>Wordmark</div><h3 class="t-h4">Team name</h3><p class="t-body">A short description of how this team uses the product.</p><span class="badge badge--sm" style="justify-self:start">Outcome pill</span></article>
+      <article class="card"><div class="wordmark"><span class="wordmark__glyph" style="border-radius:50%"></span>Wordmark</div><h3 class="t-h4">Team name</h3><p class="t-body">A short description of how this team uses the product.</p><span class="badge badge--sm" style="justify-self:start">Outcome pill</span></article>
+      <article class="card"><div class="person"><span class="avatar"></span><span><div class="person__name">Person name</div><div class="person__role">Role, Company</div></span></div><p class="t-metric">11 → 2</p><p class="t-small">metric label</p><p class="t-body">Result card: logo or person, a big metric, then context.</p></article>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Steps -->
+  <section class="section" id="steps">
+    <div class="section-head"><span class="badge">Steps</span><h2 class="t-title">Step cards with connector</h2></div>
+    <div class="steps">
+      <article class="card"><div class="card__media"><div class="ds-row"><span class="icon-tile icon-tile--lg" style="background:#fff"><svg><use href="#i-circle"/></svg></span><span class="icon-tile icon-tile--lg" style="background:#fff"><svg><use href="#i-square"/></svg></span><span class="icon-tile icon-tile--lg" style="background:#fff"><svg><use href="#i-tri"/></svg></span></div></div><span class="badge badge--sm" style="justify-self:start">Step 01</span><h3 class="t-h3">First step</h3><p class="t-body">What happens in this step.</p></article>
+      <article class="card"><div class="card__media"><div class="row" style="width:75%;display:grid;gap:8px"><span class="t-small">Input label</span><span class="t-label">Typed value|</span></div></div><span class="badge badge--sm" style="justify-self:start">Step 02</span><h3 class="t-h3">Second step</h3><p class="t-body">What happens in this step.</p></article>
+      <article class="card"><div class="card__media"><div style="display:grid;gap:8px;width:80%"><div class="row"><span class="row__text t-small" style="color:var(--color-ink)">Job one</span><span class="badge badge--sm">Running</span></div><div class="row"><span class="row__text t-small" style="color:var(--color-ink)">Job two</span><span class="badge badge--sm badge--white">Queued</span></div></div></div><span class="badge badge--sm" style="justify-self:start">Step 03</span><h3 class="t-h3">Third step</h3><p class="t-body">What happens in this step.</p></article>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Hero mock / window -->
+  <section class="section" id="window">
+    <div class="section-head"><span class="badge">Window</span><h2 class="t-title">Product mock frame</h2></div>
+    <div class="dot-grid showcase" style="border-radius:var(--radius-card)">
+      <div class="window">
+        <div class="window__bar"><div class="window__dots"><i></i><i></i><i></i></div><span class="window__url">app.example.com</span><div class="window__actions"><span class="avatar-stack"><span class="avatar avatar--sm"></span><span class="avatar avatar--sm"></span></span><span class="btn btn--dark" style="height:28px;padding:0 10px;font-size:12px">Share</span></div></div>
+        <div class="window__body">
+          <div class="ds-grid ds-2" style="gap:16px">
+            <div class="card" style="box-shadow:var(--shadow-hairline)"><div class="ds-row"><span class="btn btn--dark" style="height:30px;font-size:12px">Tab one</span><span class="btn btn--white" style="height:30px;font-size:12px">Tab two</span></div><p class="t-small">Prompt label</p><p class="t-h4" style="font-weight:400">Typed prompt text…</p><button class="btn btn--dark btn--icon" style="justify-self:start"><span class="btn__icon"><svg width="16" height="16"><use href="#i-spark"/></svg></span>Run</button></div>
+            <div class="card" style="box-shadow:var(--shadow-hairline)"><div style="display:flex;justify-content:space-between"><span class="t-small">List title</span><span class="badge badge--sm badge--live">Live</span></div>
+              <div class="row"><span class="check"><svg><use href="#i-check"/></svg></span><span class="row__text"><span class="t-label">Event one</span><span class="t-small">Source</span></span><span class="row__meta">0.1s</span></div>
+              <div class="row"><span class="check"><svg><use href="#i-check"/></svg></span><span class="row__text"><span class="t-label">Event two</span><span class="t-small">Source</span></span><span class="row__meta">0.8s</span></div>
+              <div class="row"><span class="check check--pending"><svg><use href="#i-check"/></svg></span><span class="row__text"><span class="t-label">Event three</span><span class="t-small">Source</span></span><span class="row__meta">Next</span></div>
+            </div>
+          </div>
+          <div class="ds-grid ds-3" style="gap:16px">
+            <div class="stat"><span class="t-metric">4 min</span><span class="t-small">Stat label</span></div>
+            <div class="stat"><span class="t-metric">82%</span><span class="t-small">Stat label</span></div>
+            <div class="stat"><span class="t-metric">0</span><span class="t-small">Stat label</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Flow -->
+  <section class="section" id="flow">
+    <div class="section-head"><span class="badge">Flow</span><h2 class="t-title">Flow diagram</h2><p class="t-body">Sources on the left, the hub in the center, results on the right.</p></div>
+    <div class="flow">
+      <div class="flow__col">
+        <div class="node"><div class="wordmark" style="font-size:16px"><span class="wordmark__glyph" style="width:16px;height:16px"></span>Source A</div><span class="t-small">Short caption</span></div>
+        <div class="node"><div class="wordmark" style="font-size:16px"><span class="wordmark__glyph" style="width:16px;height:16px;border-radius:50%"></span>Source B</div><span class="t-small">Short caption</span></div>
+        <div class="node"><div class="wordmark" style="font-size:16px"><span class="wordmark__glyph" style="width:16px;height:16px;border-radius:3px;transform:rotate(45deg)"></span>Source C</div><span class="t-small">Short caption</span></div>
+        <div class="node"><div class="wordmark" style="font-size:16px"><span class="wordmark__glyph" style="width:16px;height:16px;background:var(--color-accent)"></span>Source D</div><span class="t-small">Short caption</span></div>
+      </div>
+      <div class="flow__center">
+        <svg class="flow__lines" viewBox="0 0 400 320" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 40 C120 40 100 160 140 160"/><path d="M0 120 C100 120 110 160 140 160"/><path d="M0 200 C100 200 110 160 140 160"/><path d="M0 280 C120 280 100 160 140 160"/>
+          <path d="M400 40 C280 40 300 160 260 160"/><path d="M400 120 C300 120 290 160 260 160"/><path d="M400 200 C300 200 290 160 260 160"/><path d="M400 280 C280 280 300 160 260 160"/>
+          <circle r="3"><animateMotion dur="3s" repeatCount="indefinite" path="M0 40 C120 40 100 160 140 160"/></circle>
+          <circle r="3"><animateMotion dur="3.6s" repeatCount="indefinite" path="M0 280 C120 280 100 160 140 160"/></circle>
+          <circle r="3"><animateMotion dur="3.3s" repeatCount="indefinite" path="M260 160 C300 160 280 40 400 40"/></circle>
+          <circle r="3"><animateMotion dur="3.9s" repeatCount="indefinite" path="M260 160 C290 160 300 200 400 200"/></circle>
+        </svg>
+        <div class="hub"><div class="hub__core"><svg width="22" height="22"><use href="#i-hex"/></svg></div></div>
+      </div>
+      <div class="flow__col">
+        <div class="node" style="grid-template-columns:auto 1fr;align-items:center;gap:10px"><span class="icon-tile"><svg><use href="#i-check"/></svg></span><span><div class="t-label">Result one</div><div class="t-small">Caption</div></span></div>
+        <div class="node" style="grid-template-columns:auto 1fr;align-items:center;gap:10px"><span class="icon-tile"><svg><use href="#i-check"/></svg></span><span><div class="t-label">Result two</div><div class="t-small">Caption</div></span></div>
+        <div class="node" style="grid-template-columns:auto 1fr;align-items:center;gap:10px"><span class="icon-tile"><svg><use href="#i-check"/></svg></span><span><div class="t-label">Result three</div><div class="t-small">Caption</div></span></div>
+        <div class="node" style="grid-template-columns:auto 1fr;align-items:center;gap:10px"><span class="icon-tile"><svg><use href="#i-check"/></svg></span><span><div class="t-label">Result four</div><div class="t-small">Caption</div></span></div>
+      </div>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Vertical tabs -->
+  <section class="section" id="vtabs">
+    <div class="section-head"><span class="badge">Vertical tabs</span><h2 class="t-title">List and detail panel</h2></div>
+    <div class="vtabs">
+      <div class="vtabs__list" role="tablist" aria-orientation="vertical" data-tabs>
+        <button class="vtab" role="tab" aria-selected="true"><span class="vtab__head"><span class="icon-tile"><svg><use href="#i-chat"/></svg></span>Item one</span><span class="t-body">The active item expands to show a description.</span></button>
+        <button class="vtab" role="tab" aria-selected="false" tabindex="-1"><span class="vtab__head"><span class="icon-tile"><svg><use href="#i-bolt"/></svg></span>Item two</span><span class="t-body">The active item expands to show a description.</span></button>
+        <button class="vtab" role="tab" aria-selected="false" tabindex="-1"><span class="vtab__head"><span class="icon-tile"><svg><use href="#i-box"/></svg></span>Item three</span><span class="t-body">The active item expands to show a description.</span></button>
+        <button class="vtab" role="tab" aria-selected="false" tabindex="-1"><span class="vtab__head"><span class="icon-tile"><svg><use href="#i-wallet"/></svg></span>Item four</span><span class="t-body">The active item expands to show a description.</span></button>
+      </div>
+      <div class="card" style="gap:16px">
+        <div style="display:flex;justify-content:space-between"><span class="t-small">Panel title</span><span class="badge badge--sm badge--live badge--white">Live</span></div>
+        <div class="row" style="background:var(--color-bg)"><span class="avatar avatar--sm"></span><span class="row__text"><span class="t-label">Requester name</span><span class="t-small">Request description</span></span><span class="t-h4">$1,000</span></div>
+        <div style="display:grid;gap:10px;padding:0 4px">
+          <div class="person" style="gap:8px"><span class="check"><svg><use href="#i-check"/></svg></span><span class="t-small" style="color:var(--color-ink);flex:1">Step submitted</span><span class="row__meta">09:41</span></div>
+          <div class="person" style="gap:8px"><span class="check"><svg><use href="#i-check"/></svg></span><span class="t-small" style="color:var(--color-ink);flex:1">Step checked</span><span class="row__meta">09:41</span></div>
+          <div class="person" style="gap:8px"><span class="check check--pending"><svg><use href="#i-check"/></svg></span><span class="t-small" style="color:var(--color-ink);flex:1">Step approved</span><span class="row__meta">09:42</span></div>
+        </div>
+        <div class="ds-grid ds-2" style="gap:12px"><div class="stat"><span class="t-metric">4.2 hrs</span><span class="t-small">Stat label</span></div><div class="stat"><span class="t-metric">98%</span><span class="t-small">Stat label</span></div></div>
+      </div>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Comparison band -->
+  <section id="compare">
+    <div class="compare on-dark">
+      <div class="compare__head">
+        <div style="display:grid;gap:8px"><h2 class="t-title" style="font-size:28px">Comparison band heading</h2><p class="t-h4 t-accent" style="font-size:14px;font-weight:500">Accent subline</p></div>
+        <button class="btn btn--accent">Action</button>
+      </div>
+      <div class="pills" data-toggle><button class="pill-tab" aria-pressed="true">Scenario one</button><button class="pill-tab" aria-pressed="false">Scenario two</button><button class="pill-tab" aria-pressed="false">Scenario three</button></div>
+      <div class="timeline"><div class="timeline__head"><span>Before</span><span class="timeline__value">2 days</span></div><div class="timeline__track"><span class="seg seg--muted" style="--w:1">Start</span><span class="seg seg--hatch" style="--w:12">Waiting…</span></div></div>
+      <div class="timeline"><div class="timeline__head"><span>After</span><span style="display:flex;gap:8px;align-items:center"><span class="badge badge--sm">10× faster</span><span class="timeline__value">4 min</span></span></div><div class="timeline__track"><span class="seg" style="--w:2">Start</span><span class="seg" style="--w:5;background:var(--color-accent)">Process</span><span class="seg" style="--w:3">Done</span></div></div>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Case study -->
+  <section class="section" id="case">
+    <div class="section-head"><span class="badge">Case study</span><h2 class="t-title">Featured story card</h2></div>
+    <div class="case">
+      <div class="case__body">
+        <div class="wordmark" style="font-size:16px"><span class="wordmark__glyph"></span>Wordmark</div>
+        <blockquote class="case__quote">A placeholder quote that runs two or three lines across the featured card.</blockquote>
+        <div class="person"><span class="avatar" style="background:#fff"></span><span><div class="person__name">Person name</div><div class="person__role" style="color:var(--color-ink-2)">Role, Company</div></span></div>
+        <a class="btn btn--dark" href="#">Read the story</a>
+      </div>
+      <div class="card" style="gap:12px">
+        <span class="t-small">Metric label</span><span class="t-display" style="font-size:40px">−62%</span>
+        <div style="display:flex;justify-content:space-between" class="t-small"><span>Before</span><span>18 hrs</span></div><div class="bar bar--dark"><div class="bar__fill" style="--value:100%;background:var(--color-muted-3)"></div></div>
+        <div style="display:flex;justify-content:space-between" class="t-small"><span style="color:var(--color-ink)">After</span><span style="color:var(--color-ink)">7 hrs</span></div><div class="bar"><div class="bar__fill" style="--value:39%"></div></div>
+      </div>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Tiles -->
+  <section class="section" id="tiles">
+    <div class="section-head"><span class="badge">Tiles</span><h2 class="t-title">Integration tile row</h2></div>
+    <div class="tiles">
+      <span class="tile"><svg><use href="#i-circle"/></svg></span><span class="tile"><svg><use href="#i-square"/></svg></span><span class="tile"><svg><use href="#i-tri"/></svg></span><span class="tile"><svg><use href="#i-hex"/></svg></span><span class="tile"><svg><use href="#i-star"/></svg></span><span class="tile"><svg><use href="#i-chat"/></svg></span>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Pricing -->
+  <section class="section" id="pricing" data-pricing>
+    <div class="section-head"><span class="badge">Pricing</span><h2 class="t-title">Pricing table</h2>
+      <div class="toggle" data-toggle style="margin-top:24px"><button class="toggle__opt" aria-pressed="true" data-period="monthly">Monthly</button><button class="toggle__opt" aria-pressed="false" data-period="yearly">Yearly <span class="badge badge--sm">Save 20%</span></button></div>
+    </div>
+    <div class="pricing">
+      <article class="plan">
+        <div class="plan__head"><h3 class="t-h4">Tier one</h3></div><p class="t-body">Who this tier is for.</p>
+        <div class="plan__limit"><span class="icon-tile"><svg><use href="#i-bolt"/></svg></span>Limit one</div>
+        <div class="plan__price"><b data-monthly="$29" data-yearly="$23">$29</b><span class="t-small">/month</span></div>
+        <a class="btn btn--accent btn--block" href="#">Action</a><div class="plan__divider"></div>
+        <ul class="checklist"><li>Feature</li><li>Feature</li><li>Feature</li></ul>
+      </article>
+      <article class="plan plan--featured">
+        <div class="plan__head"><h3 class="t-h4">Tier two</h3><span class="badge badge--sm badge--white">Popular</span></div><p class="t-body">Who this tier is for.</p>
+        <div class="plan__limit"><span class="icon-tile"><svg><use href="#i-bolt"/></svg></span>Limit two</div>
+        <div class="plan__price"><b data-monthly="$79" data-yearly="$63">$79</b><span class="t-small">/month</span></div>
+        <a class="btn btn--accent btn--block" href="#">Action</a><div class="plan__divider"></div>
+        <ul class="checklist"><li>Feature</li><li>Feature</li><li>Feature</li><li>Feature</li></ul>
+      </article>
+      <article class="plan">
+        <div class="plan__head"><h3 class="t-h4">Tier three</h3></div><p class="t-body">Who this tier is for.</p>
+        <div class="plan__limit"><span class="icon-tile"><svg><use href="#i-bolt"/></svg></span>Limit three</div>
+        <div class="plan__price"><b data-monthly="$199" data-yearly="$159">$199</b><span class="t-small">/month</span></div>
+        <a class="btn btn--accent btn--block" href="#">Action</a><div class="plan__divider"></div>
+        <ul class="checklist"><li>Feature</li><li>Feature</li><li>Feature</li></ul>
+      </article>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- FAQ -->
+  <section class="section" id="faq">
+    <div class="section-head"><span class="badge">FAQ</span><h2 class="t-title">Accordion</h2></div>
+    <div class="faq">
+      <details class="faq__item" open><summary>Question one?</summary><p>The answer sits under the question. Native details element, no JS.</p></details>
+      <details class="faq__item"><summary>Question two?</summary><p>Answer.</p></details>
+      <details class="faq__item"><summary>Question three?</summary><p>Answer.</p></details>
+    </div>
+  </section>
+  <div class="band"></div>
+
+  <!-- Blog -->
+  <section class="section" id="blog">
+    <div class="section-head"><span class="badge">Blog</span><h2 class="t-title">Featured post, list rows, newsletter</h2></div>
+    <div class="blog">
+      <article class="post">
+        <div class="post__media"><div class="halftone" style="width:45%"></div></div>
+        <div class="post__body">
+          <div class="post__meta"><span>Date</span><span>·</span><span>5 min read</span><span style="margin-left:auto;display:flex;gap:6px"><span class="badge badge--sm">Tag</span><span class="badge badge--sm badge--white" style="box-shadow:var(--shadow-hairline)">Tag</span></span></div>
+          <h3 class="post__title">Featured post title over two lines</h3>
+          <p class="t-body">A one or two line excerpt for the featured post.</p>
+        </div>
+      </article>
+      <div style="display:grid;gap:12px;align-content:start">
+        <a class="post-row" href="#"><span class="post-row__thumb"><span class="halftone"></span></span><span style="display:grid;gap:4px"><span class="post-row__cat">Category</span><span class="t-label" style="font-size:16px">Post title on one or two lines</span><span class="t-small">Date · 4 min read</span></span></a>
+        <a class="post-row" href="#"><span class="post-row__thumb"><span class="halftone halftone--ring"></span></span><span style="display:grid;gap:4px"><span class="post-row__cat">Category</span><span class="t-label" style="font-size:16px">Post title on one or two lines</span><span class="t-small">Date · 4 min read</span></span></a>
+        <div class="newsletter"><span class="t-h4">Newsletter heading</span><span class="t-small">Short supporting line.</span><button class="btn btn--dark btn--icon"><span class="btn__icon"><svg width="16" height="16"><use href="#i-spark"/></svg></span>Subscribe</button></div>
+        <a class="btn btn--accent btn--block btn--lg" href="#">View all</a>
+      </div>
+    </div>
+  </section>
+  <div class="band"></div>
+</div>
+
+<!-- Footer (full bleed) -->
+<footer class="footer" id="footer">
+  <div><h2 class="footer__title">Footer headline<br>over two lines.</h2><div class="ds-row"><a class="btn btn--accent btn--icon" href="#"><span class="btn__icon" style="background:var(--color-ink);color:#fff"><svg width="16" height="16"><use href="#i-spark"/></svg></span>Primary</a><a class="btn btn--accent" href="#">Secondary</a></div></div>
+  <div class="footer__cols">
+    <div class="footer__col"><b>Column</b><a href="#">Link</a><a href="#">Link</a></div>
+    <div class="footer__col"><b>Column</b><a href="#">Link</a><a href="#">Link</a><a href="#">Link</a></div>
+    <div class="footer__col"><b>Column</b><a href="#">Link</a><a href="#">Link</a><a href="#">Link</a></div>
+    <div class="footer__col"><b>Column</b><a href="#">Link</a><a href="#">Link</a><a href="#">Link</a></div>
+  </div>
+</footer>
+
+<script>
+  const css = getComputedStyle(document.documentElement);
+  const colors = ['ink', 'ink-2', 'teal', 'accent', 'accent-light', 'accent-tint', 'bg', 'surface', 'muted', 'muted-2', 'muted-3', 'border'];
+  document.getElementById('swatches').innerHTML = colors.map(c => {
+    const v = css.getPropertyValue('--color-' + c).trim();
+    return `<div class="swatch"><i style="background:${v}"></i><span class="t-label">--color-${c}</span><code>${v}</code></div>`;
+  }).join('');
+  document.getElementById('spaces').innerHTML = [1, 2, 3, 4, 5, 6, 7, 8].map(n => {
+    const v = css.getPropertyValue('--space-' + n).trim();
+    return `<div style="display:grid;grid-template-columns:120px 1fr;align-items:center;gap:12px"><code>--space-${n} ${v}</code><div style="height:14px;width:${v};border-radius:4px;background:var(--color-accent)"></div></div>`;
+  }).join('');
+</script>
+<script src="site.js"></script>
+</body>
+</html>

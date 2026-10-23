@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent readiness report · Site Report</title>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<div class="frame">
+  <header class="nav">
+    <a class="nav__brand" href="index.html"><i></i>Site Report</a>
+    <nav class="nav__links" aria-label="Report sections"><a href="#fix">Fix first</a><a href="#checks">All checks</a><a href="#plan">Fix plan</a></nav>
+    <div class="nav__end"><button class="link linkbtn" type="button" id="copy-link">Copy link</button><a class="btn btn--white" id="rescan" href="scan.html">Rescan</a></div>
+  </header>
+
+  <main>
+    <section class="wrap" style="padding-top:48px;padding-bottom:56px;display:grid;gap:32px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:16px">
+        <div>
+          <p class="t-small" style="margin-bottom:8px">Agent readiness report</p>
+          <h1 class="t-display" id="host" style="overflow-wrap:anywhere"></h1>
+        </div>
+        <p class="t-small" id="meta"></p>
+      </div>
+
+      <div class="profile" id="profile">
+        <span class="profile__type" id="profile-type"></span>
+        <label class="switch"><input type="checkbox" data-cond="act"><span id="act-label"></span></label>
+        <details class="profile__more"><summary>More about this site</summary><div id="more-conds"></div></details>
+      </div>
+
+      <div class="summary">
+        <div class="verdict" id="verdict"></div>
+        <table class="layers" id="layers" aria-label="Score by layer"></table>
+      </div>
+    </section>
+
+    <section class="block" id="fix">
+      <div class="block__head">
+        <h2>Fix these first</h2>
+        <p class="read read--muted">Ranked by how much agents depend on each check (MUST, then SHOULD, then MAY), not by points.</p>
+      </div>
+      <ol class="ranked" id="ranked"></ol>
+    </section>
+
+    <section class="block" id="checks">
+      <div class="checks-bar">
+        <div><h2 class="t-title" style="margin:0 0 4px">All checks</h2><p class="t-small" id="tally"></p></div>
+        <div class="toggle" id="view" role="group" aria-label="Show checks">
+          <button class="toggle__opt" type="button" aria-pressed="true" data-view="work">Needs work</button>
+          <button class="toggle__opt" type="button" aria-pressed="false" data-view="layer">By layer</button>
+        </div>
+      </div>
+      <div id="groups"></div>
+    </section>
+
+    <section class="block" id="plan">
+      <div class="offer">
+        <div>
+          <h2>Get a task like the example for every finding</h2>
+          <p class="read read--muted" id="offer-text"></p>
+        </div>
+        <a class="btn btn--dark btn--lg" href="checkout.html">See the fix plan · $30</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>Checks follow the open AgentReady specification. The score isn't a certification.</span>
+    <nav aria-label="Footer"><a href="index.html#scoring">How scoring works</a><a href="index.html">Scan another site</a><a href="#">Contact</a></nav>
+  </footer>
+</div>
+
+<script type="module">
+  import { report } from './data.js';
+  import { LAYERS, WEIGHT, applies, score, grade, gain, needsWork, tally } from './lib.js';
+  import { esc, ring, status, strength, evidence, verify, taskFile, fmtDate, wireCopy } from './ui.js';
+
+  const $ = id => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const profile = { ...report.profile };
+  for (const k of Object.keys(report.conditions)) if (params.has(k)) profile[k] = params.get(k) === '1';
+  let view = 'work';
+  const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+  // ---------- static ----------
+  $('host').textContent = report.host;
+  $('meta').textContent = `Scanned ${fmtDate(report.scannedAt)} · took ${report.durationSec} seconds`;
+  $('rescan').href = `scan.html?site=${encodeURIComponent(report.host)}`;
+  $('profile-type').innerHTML = `${esc(profile.type)} <span>· detected</span>`;
+  $('act-label').textContent = report.conditions.act;
+  $('more-conds').innerHTML = Object.entries(report.conditions).filter(([k]) => k !== 'act')
+    .map(([k, label]) => `<label class="switch"><input type="checkbox" data-cond="${k}">${esc(label)}</label>`).join('');
+  $('profile').addEventListener('change', e => {
+    const k = e.target.dataset.cond;
+    if (!k) return;
+    profile[k] = e.target.checked;
+    params.set(k, profile[k] ? '1' : '0');
+    history.replaceState(null, '', `?${params}${location.hash}`);
+    render();
+  });
+  $('view').addEventListener('click', e => {
+    const b = e.target.closest('[data-view]');
+    if (!b) return;
+    view = b.dataset.view;
+    $('view').querySelectorAll('[data-view]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    renderChecks();
+  });
+  $('copy-link').addEventListener('click', async e => {
+    try { await navigator.clipboard.writeText(location.href); e.target.textContent = 'Copied'; }
+    catch { e.target.textContent = 'Copy failed'; }
+    setTimeout(() => (e.target.textContent = 'Copy link'), 1600);
+  });
+  wireCopy();
+
+  // ---------- render ----------
+  function render() {
+    document.querySelectorAll('[data-cond]').forEach(i => (i.checked = !!profile[i.dataset.cond]));
+    const s = score(report.checks, profile);
+    const work = needsWork(report.checks, profile);
+    const blockers = work.filter(c => c.strength === 'MUST' && c.status === 'fail');
+    const t = tally(report.checks, profile);
+    const verb = { find: 'reach', read: 'read', act: 'use' };
+
+    $('verdict').innerHTML = `
+      ${ring(s.overall.value)}
+      <div class="verdict__text">
+        <p class="verdict__grade">Grade ${grade(s.overall.value)}</p>
+        <p class="read">${blockers.length
+          ? `${plural(blockers.length, 'MUST check')} failed, so agents can't fully ${verb[blockers[0].layer]} this site.`
+          : `No MUST check failed, so nothing here stops agents. ${plural(work.length, 'check')} would make the site easier for them to use.`}</p>
+        <p class="t-small">${t.fail} failed · ${t.warn} warnings · ${t.pass} passed${t.na ? ` · ${t.na} not scored for this site` : ''}</p>
+      </div>`;
+
+    $('layers').innerHTML = `<tbody>${Object.entries(LAYERS).map(([k, l]) => {
+      const v = s.layers[k];
+      const note = !v && k === 'act' ? 'Not scored. Switch on “agents should complete tasks” above to include it.' : l.question;
+      return `<tr class="${v ? '' : 'off'}">
+        <th scope="row">${l.name}<small>${note}</small></th>
+        <td class="bar-cell"><div class="meter"><i style="--v:${v ? v.value : 0}%"></i></div></td>
+        <td class="num">${v ? v.value : '—'}<small>${v ? plural(v.checks, 'check') : 'not scored'}</small></td></tr>`;
+    }).join('')}</tbody>`;
+
+    $('ranked').innerHTML = work.slice(0, 3).map(c => `
+      <li>
+        <div class="ranked__body">
+          <div><h3>${esc(c.title)}</h3>
+            <div class="ranked__meta">${status(c.status)}${strength(c.strength)}<span class="mono muted">${c.id}</span><span class="t-small">${LAYERS[c.layer].name} · +${gain(c, report.checks, profile)} points if fixed</span></div>
+            <p class="read">${esc(c.why ?? c.summary)}</p></div>
+          ${c.why ? `<a class="link" href="#${c.id}">${c.task ? 'See the complete fix' : 'See the fix'}</a>` : ''}
+        </div>
+        <div class="evidence-col">${evidence(c.evidence)}</div>
+      </li>`).join('') || '<li><p class="read">Nothing needs work for this kind of site.</p></li>';
+
+    $('offer-text').textContent = `${plural(work.length, 'finding')} apply to ${report.host}. The fix plan gives each one the change to make, acceptance criteria and a command to verify it, as a report and as Markdown files. One-time payment.`;
+    renderChecks();
+  }
+
+  const specLink = c => `<a class="link" href="https://www.agentready.org/" rel="noopener">${c.id} in the specification</a>`;
+
+  function row(c) {
+    const ok = applies(c, profile);
+    const st = ok ? c.status : 'na';
+    const g = ok ? gain(c, report.checks, profile) : 0;
+    const notScored = ok ? '' : `<p class="t-small">Not scored: this only applies when ${c.when.map(w => report.conditions[w].replace(/^\w/, m => m.toLowerCase())).join(', and ')}.</p>`;
+    const body = c.task ? `
+        <div style="grid-column:1/-1;gap:12px" id="example"><p class="read">This is the one complete example included free. The fix plan has one for every finding that applies.</p>${taskFile(c)}</div>`
+      : c.why ? `
+        <div>${evidence(c.evidence)}<div class="field"><h4>Verify</h4>${verify(c.verify)}</div></div>
+        <div><div class="field"><h4>Why it matters</h4><p class="read">${esc(c.why)}</p></div>
+          ${c.issues ? `<div class="field"><h4>Issues</h4><ul>${c.issues.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>` : ''}
+          <div class="field"><h4>Suggested fix</h4><p class="read">${esc(c.fix)}</p></div>${notScored}</div>`
+      : `<div><p class="read">${esc(c.summary)}</p>${evidence(c.evidence)}</div><div>${notScored}</div>`;
+    return `
+      <details class="audit${st === 'fail' || st === 'warn' ? '' : ' audit--quiet'}" id="${c.id}">
+        <summary>${status(st)}<span class="mono muted">${c.id}</span>
+          <span class="audit__title">${esc(c.title)}${c.task ? '<span class="example-flag">Complete example</span>' : ''}<small>${esc(c.summary)}</small></span>
+          ${strength(c.strength)}<span class="audit__gain">${g ? `+${g}` : ''}</span><span class="audit__chev" aria-hidden="true"></span>
+        </summary>
+        <div class="audit__body">${body}
+          <div class="audit__foot"><span>Weight ${WEIGHT[c.strength]}× (${c.strength})</span>${g ? `<span>+${g} points if fixed, under the current scoring method</span>` : ''}${specLink(c)}</div>
+        </div>
+      </details>`;
+  }
+
+  const group = (title, note, list) => list.length
+    ? `<div class="group"><div class="group__head"><h3>${title}</h3><p>${note}</p></div>${list.map(row).join('')}</div>` : '';
+
+  function renderChecks() {
+    $('tally').textContent = `${report.checks.length} checks · the number on the right is what fixing a check adds to the score`;
+    const work = needsWork(report.checks, profile);
+    const passed = report.checks.filter(c => applies(c, profile) && c.status === 'pass');
+    const other = report.checks.filter(c => !applies(c, profile) || c.status === 'untested');
+    $('groups').innerHTML = view === 'work'
+      ? group('Needs work', 'Most important first', work)
+        + group('Passed', plural(passed.length, 'check'), passed)
+        + group('Not scored for this site', 'Depends on what the site does', other)
+      : Object.entries(LAYERS).map(([k, l]) => group(l.name, l.question, report.checks.filter(c => c.layer === k))).join('');
+    openHash();
+  }
+
+  function openHash() {
+    const el = location.hash && document.getElementById(location.hash.slice(1));
+    const target = el && (el.tagName === 'DETAILS' ? el : el.closest('details'));
+    if (!target) return;
+    target.open = true;
+    requestAnimationFrame(() => el.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+  }
+  addEventListener('hashchange', openHash);
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site Report · Can AI agents find and understand your website?</title>
+<meta name="description" content="A free scan of your public website against the AgentReady specification. See what agents can reach, what stops them, and what to fix first.">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<div class="frame">
+  <header class="nav">
+    <a class="nav__brand" href="index.html"><i></i>Site Report</a>
+    <nav class="nav__links" aria-label="Main"><a href="#checks">What we check</a><a href="#scoring">Scoring</a><a href="#pricing">Pricing</a></nav>
+    <div class="nav__end"><a class="link" href="report.html">Example report</a></div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1>Can AI agents find and understand your website?</h1>
+        <p class="read">Check what agents can access, what might stop them, and what to fix. Every check maps to the AgentReady specification.</p>
+        <form class="scan-form" id="scan-form" novalidate>
+          <label for="site">Website address</label>
+          <div class="scan-form__row">
+            <input id="site" name="site" type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" placeholder="example.com" aria-describedby="site-error">
+            <button class="btn btn--dark" type="submit">Run free scan</button>
+          </div>
+          <p class="scan-form__error" id="site-error" role="alert"></p>
+          <ul class="facts"><li>Free, no account</li><li>Public pages only</li><li>Findings before any payment</li></ul>
+        </form>
+      </div>
+      <aside class="preview" aria-label="Example report" id="preview"></aside>
+    </section>
+
+    <section class="block" id="checks">
+      <div class="block__head">
+        <h2>What the scan checks</h2>
+        <p class="read read--muted">Three layers, in the order an agent meets your site. Act checks only count when agents are meant to complete tasks on it, so a marketing site isn't marked down for not having an API.</p>
+      </div>
+      <div class="spec" id="spec"></div>
+    </section>
+
+    <section class="block" id="scoring">
+      <div class="method">
+        <h2 class="t-title" style="margin:0">How the score works</h2>
+        <div style="display:grid;gap:20px">
+          <p class="read">Each check is weighted by how much agents depend on it. A warning earns half. Checks that don't apply to your site, or couldn't be tested, aren't counted.</p>
+          <div class="weights">
+            <span class="strength strength--MUST">MUST</span><b>× 3</b><span>Agents fail without it</span><span></span>
+            <span class="strength strength--SHOULD">SHOULD</span><b>× 2</b><span>Measurably changes what agents do</span><span></span>
+            <span class="strength strength--MAY">MAY</span><b>× 1</b><span>Emerging convention</span><span></span>
+          </div>
+          <p class="read read--muted">The score describes technical readiness. It doesn't measure your traffic or predict how a particular agent will behave.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="block__head">
+        <h2>Why these checks</h2>
+        <p class="read read--muted">From the research behind the AgentReady specification. It was run by Ora, the spec's sponsor, so treat it as one source.</p>
+      </div>
+      <ul class="facts-list">
+        <li><b>2</b><p class="read">site changes broke agents in the studies: answers hidden behind JavaScript, and blocking them outright. Both are MUST checks.</p></li>
+        <li><b>3.7×</b><p class="read">as likely to leave out the facts a user asked for when agents couldn't read the site and answered from third-party pages instead.</p></li>
+        <li><b>1.9×</b><p class="read">as often clearly recommended, for agent-ready businesses. A correlation across 1,056 businesses, not a promise for yours.</p></li>
+      </ul>
+      <p style="margin-top:24px"><a class="link" href="https://www.agentready.org/" rel="noopener">Read the specification and research</a></p>
+    </section>
+
+    <section class="block" id="pricing">
+      <div class="block__head">
+        <h2>Free diagnosis. Paid implementation.</h2>
+        <p class="read read--muted">The scan tells you what's wrong and shows the evidence. The fix plan tells your team exactly what to change and how to confirm it worked.</p>
+      </div>
+      <div class="plans">
+        <article class="plan">
+          <div class="plan__head"><h3 class="t-h4">Free scan</h3></div>
+          <div class="plan__price"><b>$0</b></div>
+          <ul class="checklist">
+            <li>Score and a breakdown for each layer</li>
+            <li>Every check, with what the scan saw</li>
+            <li>Fixes ranked by how much agents depend on them</li>
+            <li>One complete implementation task</li>
+          </ul>
+          <a class="btn btn--white btn--block" href="#site" style="margin-top:auto">Run free scan</a>
+        </article>
+        <article class="plan plan--featured">
+          <div class="plan__head"><h3 class="t-h4">Fix plan</h3><span class="t-small">One-time</span></div>
+          <div class="plan__price"><b>$30</b><span class="t-small">per site</span></div>
+          <ul class="checklist">
+            <li>An implementation task for every applicable finding</li>
+            <li>Each with the change, acceptance criteria and a verify command</li>
+            <li>A priority report for planning the work</li>
+            <li>Markdown files for developers and coding agents</li>
+          </ul>
+          <a class="btn btn--accent btn--block" href="report.html#example">See an example task</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="method">
+        <h2 class="t-title" style="margin:0">Questions</h2>
+        <div class="faq" style="margin:0;max-width:none">
+          <details class="faq__item"><summary>Do you need access to my site?</summary><p>No. The scan only makes the same public requests an agent would: robots.txt, pages, structured data, well-known files and any public API. Nothing behind a login, no forms, no purchases.</p></details>
+          <details class="faq__item"><summary>Why isn't the Act layer always scored?</summary><p>Act checks, like an API or an MCP server, only matter if agents are supposed to complete tasks on your site. We detect that, and you can change it on the report. The score updates straight away.</p></details>
+          <details class="faq__item"><summary>Will a higher score bring more traffic?</summary><p>We can't promise that. The score measures whether agents can technically find, read and use your site. The research shows a correlation with being recommended, not a guarantee.</p></details>
+          <details class="faq__item"><summary>Is this certified by AgentReady?</summary><p>No. The checks follow the open AgentReady specification, but the specification doesn't certify sites or endorse any scanner's score.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>Site Report</span>
+    <nav aria-label="Footer"><a href="report.html">Example report</a><a href="#scoring">Methodology</a><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></nav>
+  </footer>
+</div>
+
+<script type="module">
+  import { report } from './data.js';
+  import { LAYERS, normalizeUrl, score, grade, needsWork } from './lib.js';
+  import { esc, ring, strength, fmtDate } from './ui.js';
+
+  // form
+  const form = document.getElementById('scan-form');
+  const input = document.getElementById('site');
+  const error = document.getElementById('site-error');
+  const setError = msg => {
+    error.textContent = msg || '';
+    form.toggleAttribute('data-invalid', !!msg);
+    input.setAttribute('aria-invalid', !!msg);
+  };
+  input.addEventListener('input', () => form.hasAttribute('data-invalid') && setError(''));
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const { host, error: msg } = normalizeUrl(input.value);
+    if (msg) { setError(msg); input.focus(); return; }
+    location.href = `scan.html?site=${encodeURIComponent(host)}`;
+  });
+
+  // example report preview, computed from the same data the report page uses
+  const s = score(report.checks, report.profile);
+  const next = needsWork(report.checks, report.profile)[0];
+  document.getElementById('preview').innerHTML = `
+    <div class="preview__bar"><span>Example · <b style="color:var(--color-ink)">${esc(report.host)}</b></span><span>${fmtDate(report.scannedAt)}</span></div>
+    <div class="preview__body">
+      <div style="display:flex;gap:20px;align-items:center">
+        ${ring(s.overall.value, { small: true })}
+        <div style="display:grid;gap:4px"><span class="t-h4">Grade ${grade(s.overall.value)}</span>
+        <span class="t-small" style="line-height:1.45">Act isn't scored: agents read this site, they don't operate it.</span></div>
+      </div>
+      <table class="layers"><tbody>
+        ${Object.entries(LAYERS).map(([k, l]) => {
+          const v = s.layers[k];
+          return `<tr class="${v ? '' : 'off'}"><th style="font-size:15px">${l.name}</th><td class="bar-cell"><div class="meter"><i style="--v:${v ? v.value : 0}%"></i></div></td><td class="num" style="font-size:16px">${v ? v.value : '—'}</td></tr>`;
+        }).join('')}
+      </tbody></table>
+    </div>
+    <div class="preview__foot">Fix first: <b style="color:var(--color-ink);font-weight:500">${esc(next.title)}</b> ${strength(next.strength)} · <a class="link" href="report.html">Open the report</a></div>`;
+
+  // spec table
+  document.getElementById('spec').innerHTML = Object.entries(LAYERS).map(([k, l]) => `
+    <div class="spec__col">
+      <h3>${l.name} <small>${report.checks.filter(c => c.layer === k).length} checks</small></h3>
+      <p class="read read--muted" style="font-size:15px">${l.question}</p>
+      ${k === 'act' ? '<p class="spec__note">Only scored when agents should complete tasks on your site.</p>' : ''}
+      <ul class="spec__list">${report.checks.filter(c => c.layer === k).map(c =>
+        `<li><span class="mono">${c.id}</span><span>${esc(c.title)}</span>${strength(c.strength)}</li>`).join('')}</ul>
+    </div>`).join('');
+</script>
+</body>
+</html>

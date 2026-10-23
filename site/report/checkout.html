@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fix plan · Site Report</title>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<div class="frame">
+  <header class="nav">
+    <a class="nav__brand" href="index.html"><i></i>Site Report</a>
+    <span></span>
+    <div class="nav__end"><a class="link" id="back" href="report.html">Back to the report</a></div>
+  </header>
+
+  <main class="checkout">
+    <div class="checkout__intro">
+      <p class="t-small" id="meta" style="margin-bottom:12px"></p>
+      <h1>Fix what's holding <span id="host"></span> back</h1>
+      <p class="read read--muted" id="intro" style="max-width:580px"></p>
+    </div>
+
+    <aside class="plan plan--featured order" aria-labelledby="order-title">
+      <div class="plan__head"><h2 class="t-h4" id="order-title">Fix plan</h2><span class="t-small">One-time</span></div>
+      <div class="plan__price"><b id="price"></b><span class="t-small">USD, no subscription</span></div>
+      <ul class="checklist" id="deliverables"></ul>
+      <p class="order__small">Download the files as soon as payment completes. We also email the link to the address you use at checkout.</p>
+      <a class="btn btn--accent btn--block btn--lg" id="buy" href="#"></a>
+      <p class="test-note" id="test-note" hidden>Test mode: no real charge.</p>
+      <p class="order__links"><a href="#">Refund policy</a><a href="#">Privacy</a><a href="#">Support</a></p>
+    </aside>
+
+    <div class="checkout__main">
+      <section style="display:grid;gap:16px">
+        <div>
+          <h2 class="t-h3" style="margin:0 0 6px">What one task looks like</h2>
+          <p class="read read--muted" id="sample-note"></p>
+        </div>
+        <div id="sample"></div>
+      </section>
+
+      <section style="display:grid;gap:20px">
+        <h2 class="t-h3" style="margin:0">What you receive</h2>
+        <div class="deliver">
+          <div><h3>Priority report</h3><p class="read read--muted">One document for planning: every finding in the order to fix it, which ones you can skip for your kind of site, and why.</p></div>
+          <div><h3>Task files</h3><p class="read read--muted">One Markdown file per finding, like the one above. Hand them to a developer or a coding agent as they are.</p></div>
+        </div>
+        <dl class="dl">
+          <dt>The tasks</dt><dd id="task-list" class="read"></dd>
+          <dt>Checking your work</dt><dd><p class="read">Every task ends with a command you can run. Rescans are free, so you can confirm each check passes.</p></dd>
+          <dt>Limits</dt><dd><p class="read">Tasks cover your public website. We don't change your site for you, and we only recommend a change where the scan has evidence for it.</p></dd>
+        </dl>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <span>Site Report</span>
+    <nav aria-label="Footer"><a href="index.html#scoring">How scoring works</a><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Contact</a></nav>
+  </footer>
+</div>
+
+<script type="module">
+  import { report } from './data.js';
+  import { score, grade, needsWork } from './lib.js';
+  import { esc, taskFile, fmtDate, wireCopy } from './ui.js';
+
+  const $ = id => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const profile = { ...report.profile };
+  for (const k of Object.keys(report.conditions)) if (params.has(k)) profile[k] = params.get(k) === '1';
+
+  const s = score(report.checks, profile).overall.value;
+  const work = needsWork(report.checks, profile);
+  const sample = work.find(c => c.task);
+  const n = work.length;
+
+  $('meta').textContent = `${report.host} · scanned ${fmtDate(report.scannedAt)} · score ${s}, grade ${grade(s)}`;
+  $('host').textContent = report.host;
+  $('back').href = `report.html${location.search}`;
+  $('intro').textContent = `An implementation task for each of the ${n} findings that apply to your site, in the order to fix them. Each one says what to change, how to know it's done, and how to check.`;
+  $('price').textContent = `$${report.price}`;
+  $('buy').textContent = `Get the fix plan · $${report.price}`;
+  $('test-note').hidden = !report.testMode;
+  $('deliverables').innerHTML = [
+    `${n} implementation tasks, one per applicable finding`,
+    'Change, acceptance criteria and a verify command for each',
+    'A priority report for planning the work',
+    'Markdown files for your team or a coding agent',
+  ].map(x => `<li>${x}</li>`).join('');
+  $('sample-note').textContent = sample ? `This is the task for ${sample.id}, one of your top findings. You can already see it free in the report.` : '';
+  $('sample').innerHTML = sample ? taskFile(sample) : '';
+  $('task-list').innerHTML = `<ol style="margin:0;padding-left:20px;display:grid;gap:4px">${work.map(c => `<li>${esc(c.title)} <span class="mono muted">${c.id}</span></li>`).join('')}</ol>`;
+  wireCopy();
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scanning · Site Report</title>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<div class="frame">
+  <header class="nav">
+    <a class="nav__brand" href="index.html"><i></i>Site Report</a>
+    <span></span>
+    <div class="nav__end"><a class="link" href="index.html">Scan another site</a></div>
+  </header>
+
+  <main class="scan">
+    <section>
+      <p class="t-small" style="margin-bottom:8px" id="kicker">Scanning</p>
+      <h1 class="t-display" id="host" style="margin:0 0 12px;overflow-wrap:anywhere"></h1>
+      <p class="read read--muted" id="lede" style="margin-bottom:32px;max-width:520px">The report opens as soon as the last step finishes. You can leave this tab open.</p>
+      <ol class="progress" id="steps" aria-live="polite"></ol>
+    </section>
+    <aside class="aside" id="aside" aria-live="polite"></aside>
+  </main>
+
+  <footer class="foot">
+    <span>Preview states: <a class="link" href="?site=alliance.xyz">Running</a> · <a class="link" href="?site=alliance.xyz&amp;cached=1">Recent scan</a> · <a class="link" href="?site=alliance.xyz&amp;fail=1">Failed</a></span>
+    <nav aria-label="Footer"><a href="index.html#checks">What we check</a><a href="#">Contact</a></nav>
+  </footer>
+</div>
+
+<script type="module">
+  import { normalizeUrl } from './lib.js';
+  import { esc } from './ui.js';
+
+  const params = new URLSearchParams(location.search);
+  const { host = 'alliance.xyz' } = normalizeUrl(params.get('site'));
+  const reportUrl = `report.html?site=${encodeURIComponent(host)}`;
+  const scanUrl = `scan.html?site=${encodeURIComponent(host)}`;
+  const $ = id => document.getElementById(id);
+
+  // Real scan stages. The backend reports each one; the page never invents progress.
+  const STEPS = [
+    { id: 'fetch', layer: 'Find', label: 'Fetching the homepage', about: 'We request the homepage the way an agent would: no JavaScript, no cookies.' },
+    { id: 'robots', layer: 'Find', label: 'robots.txt and bot protection', about: 'Checks whether AI crawlers are allowed, and whether a firewall or bot manager challenges verified agents. Blocking is one of the two changes known to break agents.' },
+    { id: 'discovery', layer: 'Find', label: 'Sitemap and discovery files', about: 'Looks for sitemap.xml, an AI Catalog and other well-known files, and whether pages link to them.' },
+    { id: 'html', layer: 'Read', label: 'Initial HTML and status codes', about: 'Confirms the main text is in the first HTML response and that missing pages return 404. Content hidden behind JavaScript is the other known agent-breaker.' },
+    { id: 'data', layer: 'Read', label: 'Structured data and llms.txt', about: 'Reads JSON-LD, llms.txt and Markdown responses, the facts agents quote when they describe you.' },
+    { id: 'act', layer: 'Act', label: 'APIs, MCP servers and CLIs', about: 'Looks for interfaces agents can complete tasks through. Only scored if your site is meant to be operated by agents.' },
+    { id: 'score', layer: '', label: 'Scoring', about: 'Weights each check by strength and leaves out any that don\'t apply to your kind of site.' },
+  ];
+
+  $('host').textContent = host;
+  $('steps').innerHTML = STEPS.map(s => `<li data-step="${s.id}"><span class="mono">${s.layer}</span><span>${s.label}</span><small></small></li>`).join('');
+
+  const aside = (title, body, actions = '') => { $('aside').innerHTML = `<h2>${title}</h2>${body}${actions}`; };
+
+  // Backend hooks: call scanProgress as stages finish, scanComplete when the report is stored.
+  window.scanProgress = (id, state, note = '') => {
+    const li = document.querySelector(`[data-step="${id}"]`);
+    li.dataset.state = state;
+    li.querySelector('small').textContent = note;
+    const step = STEPS.find(s => s.id === id);
+    if (state === 'active') aside(esc(step.label), `<p class="read">${esc(step.about)}</p>`);
+    if (state === 'failed') {
+      $('kicker').textContent = 'Scan stopped';
+      $('lede').textContent = `We couldn't finish scanning ${host}. Nothing was saved.`;
+      aside(`Couldn't reach ${esc(host)}`,
+        '<p class="read">The homepage didn\'t respond within 20 seconds. The site may be down, or a firewall may be blocking automated requests, which agents would hit too.</p>',
+        `<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn--dark" href="${scanUrl}">Try again</a><a class="btn btn--white" href="index.html">Change the address</a></div>`);
+    }
+  };
+  window.scanComplete = () => location.replace(reportUrl);
+
+  if (params.has('cached')) {
+    $('kicker').textContent = 'Recent scan found';
+    $('lede').textContent = 'This site was scanned recently, so we\'re opening that report rather than scanning again.';
+    $('steps').hidden = true;
+    const when = new Date('2026-10-22T14:02:00Z').toLocaleString(undefined, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    aside(`Scanned ${esc(when)}`, '<p class="read">If you\'ve changed the site since then, run a new scan.</p>',
+      `<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn--dark" href="${reportUrl}">Open report</a><a class="btn btn--white" href="${scanUrl}">Scan again</a></div>`);
+  } else {
+    demoScan(params.has('fail'));
+  }
+
+  // ponytail: stand-in for the scan API so the flow can be clicked through. Replace with backend calls to scanProgress().
+  function demoScan(fail) {
+    const notes = { fetch: '200 · 0.4s', robots: 'allowed', discovery: 'sitemap found', html: '404 ok', data: '1 JSON-LD block', act: 'none found', score: '' };
+    let i = 0;
+    const tick = () => {
+      if (i > 0) scanProgress(STEPS[i - 1].id, 'done', notes[STEPS[i - 1].id]);
+      if (fail && i === 1) return scanProgress('fetch', 'failed', 'timed out');
+      if (i === STEPS.length) return setTimeout(scanComplete, 600);
+      scanProgress(STEPS[i++].id, 'active');
+      setTimeout(tick, 900);
+    };
+    tick();
+  }
+</script>
+</body>
+</html>
